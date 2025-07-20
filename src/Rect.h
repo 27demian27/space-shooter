@@ -1,6 +1,8 @@
 #include Vector2
 
-/* Struct that represents a Rectangle.
+/**
+ * @brief Struct that represents a Rectangle.
+ *
  * Consists of four Vector2 corner points.
  */
 struct Rect {

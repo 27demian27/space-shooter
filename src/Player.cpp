@@ -1,6 +1,7 @@
 #define _USE_MATH_DEFINES
 
 #include <cmath>
+#include <iostream>
 
 #include "Player.h"
 
@@ -18,6 +19,9 @@ Player::Player() {
     position = {0, 0};
     velocity = {0, 0};
     rotation = 0;
+
+    move_speed = 300.0f;
+    decellaration_rate = 200.0f;
 }
 
 bool Player::shoot() {
@@ -33,6 +37,23 @@ void Player::update(float dt) {
     position.x = position.x + velocity.x * dt;
     position.y = position.y + velocity.y * dt;
 
+    if (velocity.x + velocity.y > move_speed) {
+
+    }
+
+    if (velocity.x >= 0) {
+        velocity.x = velocity.x - decellaration_rate * dt;
+    } else {
+        velocity.x = velocity.x + decellaration_rate * dt;
+    }
+    if (velocity.y >= 0) {
+        velocity.y = velocity.y - decellaration_rate * dt;
+    } else {
+        velocity.y = velocity.y + decellaration_rate * dt;
+    }
+        
+
+
     if (remaining_attack_cooldown <= 0) {
         can_shoot = false;
         remaining_attack_cooldown = attack_speed;
@@ -43,14 +64,34 @@ void Player::update(float dt) {
 
 }
 
-Vector2 Player::getVelocity()  { return velocity; }
+float Player::getX() { return position.x; }
+float Player::getY() { return position.y; }
 
-void Player::setVelocity(Vector2 velocity) { this->velocity = velocity; }
+float Player::getMoveSpeed() { return move_speed; }
+
+Vector2 Player::getVelocity() { return velocity; }
+
+void Player::setVelocity(Vector2 velocity) { 
+    if (velocity.x != 0.f && velocity.y != 0.f) {
+        velocity.x *= 0.7071f;
+        velocity.y *= 0.7071f;
+    }
+    velocity.x *= move_speed;
+    velocity.y *= move_speed;
+
+    this->velocity = velocity;
+    
+}
 
 float Player::getRotation() { return rotation; }
 
 void Player::setRotation(float rotation) { this->rotation = rotation; }
 
+/**
+ * @brief Calculates rotation from a 2D mouse position vector.
+ * 
+ * @param mousePos 2D position vector used to calculate new angle.
+ */
 void Player::setRotation(Vector2 mousePos) {
     float dx = mousePos.x - position.x;
     float dy = mousePos.y - position.y;

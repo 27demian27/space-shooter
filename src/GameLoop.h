@@ -24,6 +24,8 @@ private:
     void handleInput();
     void update(float dt);
     void render();
+
+    void drawDebug();
 };
 
 #endif //GAMELOOP

@@ -4,7 +4,7 @@
 #include "Vector2.h"
 
 class Player {
-// WASD bewegen, muis mikken.
+
 public:
 
     Player();
@@ -17,6 +17,11 @@ public:
     float getRotation();
     void setRotation(Vector2 mousePos);
     void setRotation(float rotation);
+
+    float getX();
+    float getY();
+
+    float getMoveSpeed();
 
     void update(float dt);
 
@@ -35,6 +40,9 @@ private:
 
     Vector2 position;
     Vector2 velocity;
+
+    float move_speed;
+    float decellaration_rate;
 
 };
 
