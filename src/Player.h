@@ -1,42 +1,45 @@
-#ifndef PLAYER
-#define PLAYER
+#ifndef PLAYER_H
+#define PLAYER_H
 
+#include "Shooter.h"
 #include "Vector2.h"
+#include "PlayArea.h"
+#include "ShipType.h"
 
-class Player {
+class Player : public Shooter {
 
 public:
+    Player() = default;
 
-    Player();
+    Player(PlayArea& playArea);
 
-    bool shoot();
+    bool shoot() override;
 
     Vector2 getVelocity();
     void setVelocity(Vector2 velocity);
 
-    float getRotation();
+    float getRotation() override;
+
     void setRotation(Vector2 mousePos);
     void setRotation(float rotation);
 
-    float getX();
-    float getY();
+    float getX() override;
+    float getY() override;
+
+    void setPosition(Vector2 position);
 
     float getMoveSpeed();
+    float getBulletSpeed() override;
 
     void update(float dt);
 
 private:
+    PlayArea& playArea;
+
     float max_health;
     float current_health;
 
-    float attack_speed;
-    float remaining_attack_cooldown;
-    bool can_shoot;
-
-    float bullet_damage;
     float collision_damage;
-
-    float rotation;
 
     Vector2 position;
     Vector2 velocity;
@@ -44,6 +47,7 @@ private:
     float move_speed;
     float decellaration_rate;
 
+    ShipType ship_type;
 };
 
-#endif //PLAYER
+#endif //PLAYER_H

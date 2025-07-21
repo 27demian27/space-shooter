@@ -22,9 +22,17 @@ add_executable(
     src/Player.cpp /
 
     src/PlayArea.h /
+    src/PlayArea.cpp /
+
+    src/Bullet.h /
+    src/Bullet.cpp /
+
+    src/Shooter.h /
 
     src/Vector2.h /
     src/Rect.h/
+
+    src/ShipType.h /
     
     )
 target_compile_features(main PRIVATE cxx_std_17)

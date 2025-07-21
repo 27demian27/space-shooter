@@ -6,14 +6,21 @@
 #include "GameLoop.h"
 
 GameLoop::GameLoop(int width, int height)
-    : window(sf::VideoMode({static_cast<uint>(width), static_cast<uint>(height)}), "SFML window") {
+ :  window(sf::VideoMode({static_cast<uint>(width), static_cast<uint>(height)}), "SFML window"),
+    playArea(width, height),
+    player(playArea),
+    player_texture("assets/textures/space_ship.png"),
+    player_sprite(player_texture)
+{   
     sf::VideoMode desktop = sf::VideoMode::getDesktopMode();
     window.setPosition(sf::Vector2i(0, 0));
     this->width = width;
     this->height = height;
-    this->player = Player();
-    this->player_start_pos = sf::Vector2f(window.getSize().x / 2.0f, window.getSize().y / 1.2f);
+    player_start_pos = sf::Vector2f(window.getSize().x / 2.0f, window.getSize().y / 2.0f);
+    player.setPosition({player.getX(), player.getY() + 300.0f});
 
+    player_sprite.setScale({0.2f, 0.2f});
+    player_sprite.setOrigin(player_sprite.getLocalBounds().getCenter());
 }
 
 
@@ -76,8 +83,12 @@ void GameLoop::run() {
                 static_cast<float>(sf::Keyboard::isKeyPressed(sf::Keyboard::Scancode::S) - sf::Keyboard::isKeyPressed(sf::Keyboard::Scancode::W))
             };
 
+            if (sf::Mouse::isButtonPressed(sf::Mouse::Button::Left)) 
+                player.shoot();
+
             player.setVelocity(velocity);
             player.update(dt);
+            playArea.update(dt);
 
             render();
 
@@ -89,27 +100,37 @@ void GameLoop::run() {
 }
 
 void GameLoop::render() {
-    sf::CircleShape player_sprite(80.f, 3);
-    player_sprite.setScale(sf::Vector2f(0.5f, 0.5f));
-    player_sprite.setOrigin(player_sprite.getLocalBounds().getCenter());
+    //sf::CircleShape player_sprite(34.0f, 3);
     player_sprite.setPosition({player_start_pos.x + player.getX(), player_start_pos.y + player.getY()});
     player_sprite.setRotation(sf::degrees(player.getRotation()));
+
+    int count = 0;
+    for (Bullet& bullet : playArea.getBullets()) {
+        sf::CircleShape bullet_sprite(5.0f);
+        bullet_sprite.setFillColor(sf::Color(145, 5, 0));
+        bullet_sprite.setOutlineThickness(2.0f);
+        bullet_sprite.setOutlineColor(sf::Color(255, 88, 82));
+        bullet_sprite.setOrigin(bullet_sprite.getLocalBounds().getCenter());
+        bullet_sprite.setPosition({bullet.getPosition().x + player_start_pos.x, bullet.getPosition().y + player_start_pos.y});
+        window.draw(bullet_sprite);
+        count++;
+    }
     window.draw(player_sprite);
 }
 
 void GameLoop::drawDebug() {
     sf::Font const font("assets/fonts/public_pixel.ttf");
-    sf::Text angle_text(font, "r: ", 50);
-    sf::Text x_speed_text(font, "vx: ", 50);
-    sf::Text y_speed_text(font, "vy: ", 50);
+    sf::Text angle_text(font, "r: ", 20);
+    sf::Text x_speed_text(font, "vx: ", 20);
+    sf::Text y_speed_text(font, "vy: ", 20);
 
     angle_text.setString("r: "+ std::to_string(player.getRotation()));
 
     x_speed_text.setString("vx: "+ std::to_string(player.getVelocity().x));
-    x_speed_text.setPosition(sf::Vector2f(0, 50));
+    x_speed_text.setPosition(sf::Vector2f(0, 20));
 
     y_speed_text.setString("vy: "+ std::to_string(player.getVelocity().y));
-    y_speed_text.setPosition(sf::Vector2f(0, 100));
+    y_speed_text.setPosition(sf::Vector2f(0, 40));
 
     window.draw(angle_text);
     window.draw(x_speed_text);

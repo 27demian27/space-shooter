@@ -1,9 +1,10 @@
-#ifndef GAMELOOP
-#define GAMELOOP
+#ifndef GAMELOOP_H
+#define GAMELOOP_H
 
 #include <SFML/Graphics.hpp>
 
 #include "Player.h"
+#include "PlayArea.h"
 
 class GameLoop {
 
@@ -15,8 +16,14 @@ public:
 
 private:
     sf::RenderWindow window;
+
     Player player;
     sf::Vector2f player_start_pos;
+
+    sf::Texture const player_texture;
+    sf::Sprite player_sprite;
+
+    PlayArea playArea;
 
     int width;
     int height;
@@ -28,4 +35,4 @@ private:
     void drawDebug();
 };
 
-#endif //GAMELOOP
+#endif //GAMELOOP_H

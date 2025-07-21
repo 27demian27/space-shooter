@@ -6,7 +6,6 @@ A simple 2D shooter game that takes place in the cosmos.
 Fight your way through hordes of enemies and take on bosses.
   
 <br />
-<br />
 
 ### Setup:
 Make sure you have CMake ```version >= 3.28```
@@ -17,7 +16,7 @@ Install dependencies:
 <br />
 <br />
 
-Now build:
+Build binaries:
 1. ```cmake -B build```
 2. ```cmake --build build```
 

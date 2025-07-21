@@ -5,15 +5,17 @@
 
 #include "Player.h"
 
-Player::Player() {
+Player::Player(PlayArea& playArea) : playArea(playArea) {
+
     max_health = 100;
     current_health = max_health;
 
     remaining_attack_cooldown = 0;
     can_shoot = true;
-    attack_speed = 1.5;
+    attack_speed = 1.5f;
 
     bullet_damage = 20;
+    bullet_speed = 600;
     collision_damage = 50;
 
     position = {0, 0};
@@ -22,11 +24,30 @@ Player::Player() {
 
     move_speed = 300.0f;
     decellaration_rate = 200.0f;
+
+    ship_type = ShipType::FROG;
 }
 
 bool Player::shoot() {
     if (can_shoot) {
-        //shoot logic (spawn bullet)
+        switch (ship_type) {
+            case (ShipType::FROG):
+            {
+                Bullet bullet1(*this, position.x - 20.0f, position.y - 10.0f);
+                Bullet bullet2(*this, position.x + 20.0f, position.y - 10.0f);
+                playArea.addBullet(bullet1);
+                playArea.addBullet(bullet2);
+                break;
+            }
+            default:
+            {
+                Bullet bullet(*this, position.x, position.y - 10.0f);
+                playArea.addBullet(bullet);
+                break;
+            }
+        }
+
+        remaining_attack_cooldown = 1.0f / attack_speed;
         return true;
     }
     
@@ -36,28 +57,27 @@ bool Player::shoot() {
 void Player::update(float dt) {
     position.x = position.x + velocity.x * dt;
     position.y = position.y + velocity.y * dt;
+    
+    playArea.clipToArea(position.x, position.y);
 
-    if (velocity.x + velocity.y > move_speed) {
-
-    }
-
-    if (velocity.x >= 0) {
+    if (velocity.x > 0) {
         velocity.x = velocity.x - decellaration_rate * dt;
-    } else {
+    } 
+    else if (velocity.x < 0) {
         velocity.x = velocity.x + decellaration_rate * dt;
     }
-    if (velocity.y >= 0) {
+    if (velocity.y > 0) {
         velocity.y = velocity.y - decellaration_rate * dt;
-    } else {
+    } 
+    else if(velocity.y < 0) {
         velocity.y = velocity.y + decellaration_rate * dt;
     }
-        
 
 
     if (remaining_attack_cooldown <= 0) {
-        can_shoot = false;
-        remaining_attack_cooldown = attack_speed;
+        can_shoot = true;
     } else {
+        can_shoot = false;
         remaining_attack_cooldown = remaining_attack_cooldown - dt;
     }
 
@@ -68,6 +88,7 @@ float Player::getX() { return position.x; }
 float Player::getY() { return position.y; }
 
 float Player::getMoveSpeed() { return move_speed; }
+float Player::getBulletSpeed() { return bullet_speed; }
 
 Vector2 Player::getVelocity() { return velocity; }
 
@@ -82,6 +103,8 @@ void Player::setVelocity(Vector2 velocity) {
     this->velocity = velocity;
     
 }
+
+void Player::setPosition(Vector2 position) { this->position = position; }
 
 float Player::getRotation() { return rotation; }
 
