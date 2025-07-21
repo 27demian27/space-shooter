@@ -18,21 +18,20 @@ add_executable(
     src/GameLoop.h /
     src/GameLoop.cpp /
 
-    src/Player.h /
-    src/Player.cpp /
+    src/Player/Player.h /
+    src/Player/Player.cpp /
 
-    src/PlayArea.h /
-    src/PlayArea.cpp /
+    src/PlayArea/PlayArea.h /
+    src/PlayArea/PlayArea.cpp /
 
-    src/Bullet.h /
-    src/Bullet.cpp /
+    src/Bullet/Bullet.h /
+    src/Bullet/Bullet.cpp /
 
     src/Shooter.h /
 
-    src/Vector2.h /
-    src/Rect.h/
-
-    src/ShipType.h /
+    src/Utils/Vector2.h /
+    src/Utils/Rect.h/
+    src/Utils/ShipType.h /
     
     )
 target_compile_features(main PRIVATE cxx_std_17)

@@ -3,8 +3,8 @@
 
 #include <SFML/Graphics.hpp>
 
-#include "Player.h"
-#include "PlayArea.h"
+#include "Player/Player.h"
+#include "PlayArea/PlayArea.h"
 
 class GameLoop {
 

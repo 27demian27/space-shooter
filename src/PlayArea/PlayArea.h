@@ -3,8 +3,8 @@
 
 #include <vector>
 
-#include "Rect.h"
-#include "Bullet.h"
+#include "../Utils/Rect.h"
+#include "../Bullet/Bullet.h"
 
 class PlayArea {
 

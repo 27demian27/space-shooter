@@ -1,8 +1,8 @@
 #ifndef BULLET_H
 #define BULLET_H
 
-#include "Shooter.h"
-#include "Vector2.h"
+#include "../Utils/Vector2.h"
+#include "../Shooter.h"
 
 class Bullet {
 

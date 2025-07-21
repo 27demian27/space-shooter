@@ -1,10 +1,10 @@
 #ifndef PLAYER_H
 #define PLAYER_H
 
-#include "Shooter.h"
-#include "Vector2.h"
-#include "PlayArea.h"
-#include "ShipType.h"
+#include "../Utils/Vector2.h"
+#include "../Utils/ShipType.h"
+#include "../Shooter.h"
+#include "../PlayArea/PlayArea.h"
 
 class Player : public Shooter {
 
