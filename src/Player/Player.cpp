@@ -10,9 +10,12 @@ Player::Player(PlayArea& playArea) : playArea(playArea) {
     max_health = 100;
     current_health = max_health;
 
+    size = Vector2({100, 100});
+    hitbox = Rect();
+
     remaining_attack_cooldown = 0;
     can_shoot = true;
-    attack_speed = 1.5f;
+    attack_speed = 2.5f;
 
     bullet_damage = 20;
     bullet_speed = 600;
@@ -23,35 +26,54 @@ Player::Player(PlayArea& playArea) : playArea(playArea) {
     rotation = 0;
 
     move_speed = 300.0f;
-    decellaration_rate = 200.0f;
+    decellaration_rate = 100.0f;
 
     ship_type = ShipType::FROG;
+
 }
 
 bool Player::shoot() {
-    if (can_shoot) {
-        switch (ship_type) {
-            case (ShipType::FROG):
-            {
-                Bullet bullet1(*this, position.x - 20.0f, position.y - 10.0f);
-                Bullet bullet2(*this, position.x + 20.0f, position.y - 10.0f);
-                playArea.addBullet(bullet1);
-                playArea.addBullet(bullet2);
-                break;
-            }
-            default:
-            {
-                Bullet bullet(*this, position.x, position.y - 10.0f);
-                playArea.addBullet(bullet);
-                break;
-            }
-        }
+    if (!can_shoot) return false;
 
-        remaining_attack_cooldown = 1.0f / attack_speed;
-        return true;
+    float theta = rotation * (M_PI / 180.0f);
+
+    switch (ship_type) {
+        case ShipType::FROG: {
+            Vector2 left_local_offset  = {-size.x / 4.0f, -size.y / 3.0f};
+            Vector2 right_local_offset = { size.x / 4.0f, -size.y / 3.0f};
+
+            Vector2 left_world_offset  = rotate(left_local_offset, theta);
+            Vector2 right_world_offset = rotate(right_local_offset, theta);
+
+            Bullet bullet1(*this, position.x + left_world_offset.x, position.y + left_world_offset.y);
+            Bullet bullet2(*this, position.x + right_world_offset.x, position.y + right_world_offset.y);
+
+            playArea.addBullet(bullet1);
+            playArea.addBullet(bullet2);
+            break;
+        }
+        default: {
+            Vector2 forward = rotate({0.0f, -10.0f}, theta);
+            Bullet bullet(*this, position.x + forward.x, position.y + forward.y);
+            playArea.addBullet(bullet);
+            break;
+        }
     }
-    
-    return false;
+
+    remaining_attack_cooldown = 1.0f / attack_speed;
+    return true;
+}
+
+
+
+void Player::updateHitbox() {
+    float hitbox_width = size.x / 2.0f;
+    float hitbox_height = size.y / 2.0f;
+
+    hitbox.TL = {position.x - hitbox_width / 2.0f, position.y - hitbox_height / 2.0f};
+    hitbox.BL = {position.x - hitbox_width / 2.0f, position.y + hitbox_height / 2.0f};
+    hitbox.TR = {position.x + hitbox_width / 2.0f, position.y - hitbox_height / 2.0f};
+    hitbox.BR = {position.x - hitbox_width / 2.0f, position.y - hitbox_height / 2.0f};
 }
 
 void Player::update(float dt) {
@@ -81,6 +103,7 @@ void Player::update(float dt) {
         remaining_attack_cooldown = remaining_attack_cooldown - dt;
     }
 
+    updateHitbox();
 
 }
 
@@ -120,3 +143,10 @@ void Player::setRotation(Vector2 mousePos) {
     float dy = mousePos.y - position.y;
     rotation = std::atan2(dy, dx) * (180.0f / M_PI) + 90.0f;
 }
+
+Vector2 Player::getSize() { return size; }
+
+Rect Player::getHitbox() { return hitbox; }
+
+float Player::getMaxHealth() { return max_health; }
+float Player::getCurrentHealth() { return current_health; }

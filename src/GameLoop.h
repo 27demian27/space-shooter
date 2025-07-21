@@ -5,6 +5,7 @@
 
 #include "Player/Player.h"
 #include "PlayArea/PlayArea.h"
+#include "Graphics/HealthBar.h"
 
 class GameLoop {
 
@@ -22,6 +23,8 @@ private:
 
     sf::Texture const player_texture;
     sf::Sprite player_sprite;
+
+    HealthBar health_bar;
 
     PlayArea playArea;
 

@@ -20,4 +20,6 @@ struct Rect {
         this->BR = BR;
     };
 
+    Vector2 size() { return Vector2({TR.x - TL.x, BL.y - TL.y}); }
+
 };

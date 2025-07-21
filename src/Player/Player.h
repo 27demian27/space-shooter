@@ -26,6 +26,10 @@ public:
     float getX() override;
     float getY() override;
 
+    Vector2 getSize();
+
+    Rect getHitbox();
+
     void setPosition(Vector2 position);
 
     float getMoveSpeed();
@@ -33,13 +37,21 @@ public:
 
     void update(float dt);
 
+    float getMaxHealth();
+    float getCurrentHealth();
+    
 private:
+    void updateHitbox();
+
     PlayArea& playArea;
 
     float max_health;
     float current_health;
 
     float collision_damage;
+
+    Vector2 size;
+    Rect hitbox;
 
     Vector2 position;
     Vector2 velocity;
@@ -48,6 +60,11 @@ private:
     float decellaration_rate;
 
     ShipType ship_type;
+
+    enum ShootingMode {
+        NORMAL,
+        SPECIAL
+    };
 };
 
 #endif //PLAYER_H

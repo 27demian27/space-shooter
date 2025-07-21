@@ -29,10 +29,14 @@ add_executable(
 
     src/Shooter.h /
 
+    src/Graphics/HealthBar.h /
+    src/Graphics/HealthBar.cpp /
+
     src/Utils/Vector2.h /
     src/Utils/Rect.h/
     src/Utils/ShipType.h /
     
     )
 target_compile_features(main PRIVATE cxx_std_17)
-target_link_libraries(main PRIVATE SFML::Graphics)
+target_link_libraries(main PRIVATE SFML::Graphics SFML::Audio)
+

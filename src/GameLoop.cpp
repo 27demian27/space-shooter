@@ -6,11 +6,12 @@
 #include "GameLoop.h"
 
 GameLoop::GameLoop(int width, int height)
- :  window(sf::VideoMode({static_cast<uint>(width), static_cast<uint>(height)}), "SFML window"),
+ :  window(sf::VideoMode({static_cast<uint>(width), static_cast<uint>(height)}), "Space Shooter"),
     playArea(width, height),
     player(playArea),
     player_texture("assets/textures/space_ship.png"),
-    player_sprite(player_texture)
+    player_sprite(player_texture),
+    health_bar(window, player, 20, height - 20.0f - 20)
 {   
     sf::VideoMode desktop = sf::VideoMode::getDesktopMode();
     window.setPosition(sf::Vector2i(0, 0));
@@ -18,8 +19,13 @@ GameLoop::GameLoop(int width, int height)
     this->height = height;
     player_start_pos = sf::Vector2f(window.getSize().x / 2.0f, window.getSize().y / 2.0f);
     player.setPosition({player.getX(), player.getY() + 300.0f});
+    std::cout << "size x: "<< player_sprite.getGlobalBounds().size.x << " y: "<<player_sprite.getGlobalBounds().size.y <<"\n";
+    float scale_x = 1.0f / (player_sprite.getGlobalBounds().size.x / player.getSize().x);
+    float scale_y = 1.0f / (player_sprite.getGlobalBounds().size.y / player.getSize().y);
+    std::cout << "scale x: "<< scale_x << " y: "<< scale_y <<"\n";
 
-    player_sprite.setScale({0.2f, 0.2f});
+    player_sprite.setScale({scale_x, scale_y});
+    std::cout << "size x: "<< player_sprite.getGlobalBounds().size.x << " y: "<<player_sprite.getGlobalBounds().size.y <<"\n";
     player_sprite.setOrigin(player_sprite.getLocalBounds().getCenter());
 }
 
@@ -30,6 +36,11 @@ void GameLoop::run() {
     sf::Texture const background_texture("assets/textures/space_background.jpg");
     sf::Sprite background_sprite(background_texture);
  
+    sf::SoundBuffer buffer;
+    if (!buffer.loadFromFile("assets/sfx/shoot_sound.wav"))
+        return;
+
+    sf::Sound shoot_sound(buffer);
 
     sf::Font const font("assets/fonts/public_pixel.ttf");
     sf::Text menu_title_text(font, "Space Shooter", 50);
@@ -84,7 +95,8 @@ void GameLoop::run() {
             };
 
             if (sf::Mouse::isButtonPressed(sf::Mouse::Button::Left)) 
-                player.shoot();
+                if(player.shoot())
+                    shoot_sound.play();
 
             player.setVelocity(velocity);
             player.update(dt);
@@ -93,6 +105,8 @@ void GameLoop::run() {
             render();
 
             drawDebug();
+
+            health_bar.draw();
         }
  
         window.display();
@@ -100,7 +114,6 @@ void GameLoop::run() {
 }
 
 void GameLoop::render() {
-    //sf::CircleShape player_sprite(34.0f, 3);
     player_sprite.setPosition({player_start_pos.x + player.getX(), player_start_pos.y + player.getY()});
     player_sprite.setRotation(sf::degrees(player.getRotation()));
 
@@ -115,7 +128,7 @@ void GameLoop::render() {
         window.draw(bullet_sprite);
         count++;
     }
-    window.draw(player_sprite);
+    window.draw(player_sprite); 
 }
 
 void GameLoop::drawDebug() {
@@ -123,6 +136,16 @@ void GameLoop::drawDebug() {
     sf::Text angle_text(font, "r: ", 20);
     sf::Text x_speed_text(font, "vx: ", 20);
     sf::Text y_speed_text(font, "vy: ", 20);
+
+    sf::RectangleShape player_hitbox({player.getHitbox().size().x, player.getHitbox().size().y});
+    player_hitbox.setFillColor(sf::Color::Transparent);
+    player_hitbox.setOutlineThickness(3.0f);
+    player_hitbox.setOrigin(player_hitbox.getLocalBounds().getCenter());
+    player_hitbox.setPosition(
+        sf::Vector2f(
+            player.getX() + player_start_pos.x, 
+            player.getY() + player_start_pos.y)
+    );
 
     angle_text.setString("r: "+ std::to_string(player.getRotation()));
 
@@ -135,4 +158,5 @@ void GameLoop::drawDebug() {
     window.draw(angle_text);
     window.draw(x_speed_text);
     window.draw(y_speed_text);
+    window.draw(player_hitbox);
 }
