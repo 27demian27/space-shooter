@@ -11,7 +11,8 @@ GameLoop::GameLoop(int width, int height)
     player(playArea),
     player_texture("assets/textures/space_ship.png"),
     player_sprite(player_texture),
-    health_bar(window, player, 20, height - 20.0f - 20)
+    health_bar(window, player, 20, height - 20.0f - 20),
+    font("assets/fonts/public_pixel.ttf")
 {   
     sf::VideoMode desktop = sf::VideoMode::getDesktopMode();
     window.setPosition(sf::Vector2i(0, 0));
@@ -27,6 +28,9 @@ GameLoop::GameLoop(int width, int height)
     player_sprite.setScale({scale_x, scale_y});
     std::cout << "size x: "<< player_sprite.getGlobalBounds().size.x << " y: "<<player_sprite.getGlobalBounds().size.y <<"\n";
     player_sprite.setOrigin(player_sprite.getLocalBounds().getCenter());
+
+    Entity entity = Entity({0, 0}, {100, 100}, 20);
+    playArea.addEntity(entity);
 }
 
 
@@ -41,8 +45,6 @@ void GameLoop::run() {
         return;
 
     sf::Sound shoot_sound(buffer);
-
-    sf::Font const font("assets/fonts/public_pixel.ttf");
     sf::Text menu_title_text(font, "Space Shooter", 50);
     menu_title_text.setFillColor(sf::Color(50, 0, 100));
     menu_title_text.setOutlineColor(sf::Color(255, 255, 255));
@@ -89,16 +91,18 @@ void GameLoop::run() {
             window.draw(menu_title_text);
         } else {
 
-            Vector2 velocity = {
-                static_cast<float>(sf::Keyboard::isKeyPressed(sf::Keyboard::Scancode::D) - sf::Keyboard::isKeyPressed(sf::Keyboard::Scancode::A)),
-                static_cast<float>(sf::Keyboard::isKeyPressed(sf::Keyboard::Scancode::S) - sf::Keyboard::isKeyPressed(sf::Keyboard::Scancode::W))
-            };
+            if (player.getKnockbackDowntime() <= 0) {
+                Vector2 velocity = {
+                    static_cast<float>(sf::Keyboard::isKeyPressed(sf::Keyboard::Scancode::D) - sf::Keyboard::isKeyPressed(sf::Keyboard::Scancode::A)),
+                    static_cast<float>(sf::Keyboard::isKeyPressed(sf::Keyboard::Scancode::S) - sf::Keyboard::isKeyPressed(sf::Keyboard::Scancode::W))
+                };
+                player.setVelocity(velocity);
+            }
 
             if (sf::Mouse::isButtonPressed(sf::Mouse::Button::Left)) 
                 if(player.shoot())
                     shoot_sound.play();
 
-            player.setVelocity(velocity);
             player.update(dt);
             playArea.update(dt);
 
@@ -117,22 +121,33 @@ void GameLoop::render() {
     player_sprite.setPosition({player_start_pos.x + player.getX(), player_start_pos.y + player.getY()});
     player_sprite.setRotation(sf::degrees(player.getRotation()));
 
-    int count = 0;
-    for (Bullet& bullet : playArea.getBullets()) {
+    for (const auto& bullet_ptr : playArea.getBullets()) {
+        const Bullet& bullet = *bullet_ptr;
+
         sf::CircleShape bullet_sprite(5.0f);
         bullet_sprite.setFillColor(sf::Color(145, 5, 0));
         bullet_sprite.setOutlineThickness(2.0f);
         bullet_sprite.setOutlineColor(sf::Color(255, 88, 82));
         bullet_sprite.setOrigin(bullet_sprite.getLocalBounds().getCenter());
-        bullet_sprite.setPosition({bullet.getPosition().x + player_start_pos.x, bullet.getPosition().y + player_start_pos.y});
+        bullet_sprite.setPosition({
+            bullet.getPosition().x + player_start_pos.x,
+            bullet.getPosition().y + player_start_pos.y
+        });
+
         window.draw(bullet_sprite);
-        count++;
+    }
+
+    for (Entity& entity : playArea.getEntities()) {
+        sf::RectangleShape entity_sprite({entity.getSize().x, entity.getSize().y});
+        entity_sprite.setOrigin(entity_sprite.getLocalBounds().getCenter());
+        entity_sprite.setPosition({width / 2.0f + entity.getPosition().x, height / 2.0f + entity.getPosition().y});
+        entity_sprite.setFillColor(sf::Color::Blue);
+        window.draw(entity_sprite);
     }
     window.draw(player_sprite); 
 }
 
 void GameLoop::drawDebug() {
-    sf::Font const font("assets/fonts/public_pixel.ttf");
     sf::Text angle_text(font, "r: ", 20);
     sf::Text x_speed_text(font, "vx: ", 20);
     sf::Text y_speed_text(font, "vy: ", 20);
@@ -146,6 +161,29 @@ void GameLoop::drawDebug() {
             player.getX() + player_start_pos.x, 
             player.getY() + player_start_pos.y)
     );
+
+    for (Entity& entity : playArea.getEntities()) {
+        sf::RectangleShape entity_hitbox({entity.getHitbox().size().x, entity.getHitbox().size().y});
+        entity_hitbox.setOutlineThickness(3.0f);
+        entity_hitbox.setFillColor(sf::Color::Transparent);
+        entity_hitbox.setOrigin(entity_hitbox.getLocalBounds().getCenter());
+        entity_hitbox.setPosition({width / 2.0f + entity.getPosition().x, height / 2.0f + entity.getPosition().y});
+        window.draw(entity_hitbox);
+
+        sf::Font const font("assets/fonts/public_pixel.ttf");
+        float health_text_size = 10.0f;
+        sf::Text health_text(font, "100/100", health_text_size);
+        health_text.setString(
+            std::to_string(static_cast<int>(entity.getCurrentHealth())) + 
+            "/" + 
+            std::to_string(static_cast<int>(entity.getMaxHealth()))
+        );
+        health_text.setPosition({
+            width / 2.0f + entity.getPosition().x, 
+            height / 2.0f + entity.getPosition().y + entity.getHitbox().size().y / 2.0f + 5.0f
+        });
+        window.draw(health_text);
+    }
 
     angle_text.setString("r: "+ std::to_string(player.getRotation()));
 

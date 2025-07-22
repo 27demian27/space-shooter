@@ -3,18 +3,31 @@
 
 #include "../Utils/Vector2.h"
 #include "../Shooter.h"
+#include "../Collidable.h"
 
-class Bullet {
+class Bullet : public Collidable {
 
 public:
-
     Bullet(Shooter& shooter, float start_x, float start_y);
 
     void update(float dt);
 
+    Vector2 getPosition() const;
+
+    bool collision(Collidable& other) override;
+
+    Rect getHitbox() override;
+
+    float getDamage() const;
+
     Vector2 getPosition();
+    
 
 private:
+
+    Shooter& shooter;
+
+    void updateHitbox();
 
     float speed;
 

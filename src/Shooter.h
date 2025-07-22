@@ -8,6 +8,7 @@ public:
     
     virtual float getRotation() = 0;
     virtual float getBulletSpeed() = 0;
+    virtual float getBulletDamage() = 0;
 
     virtual float getX() = 0;
     virtual float getY() = 0;

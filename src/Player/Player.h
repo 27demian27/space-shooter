@@ -4,9 +4,10 @@
 #include "../Utils/Vector2.h"
 #include "../Utils/ShipType.h"
 #include "../Shooter.h"
+#include "../Collidable.h"
 #include "../PlayArea/PlayArea.h"
 
-class Player : public Shooter {
+class Player : public Shooter, public Collidable {
 
 public:
     Player() = default;
@@ -28,18 +29,22 @@ public:
 
     Vector2 getSize();
 
-    Rect getHitbox();
+    Rect getHitbox() override;
+    bool collision(Collidable& entity) override;
+
+    float getKnockbackDowntime();
 
     void setPosition(Vector2 position);
 
     float getMoveSpeed();
     float getBulletSpeed() override;
+    float getBulletDamage() override;
 
     void update(float dt);
 
     float getMaxHealth();
     float getCurrentHealth();
-    
+
 private:
     void updateHitbox();
 
@@ -48,10 +53,9 @@ private:
     float max_health;
     float current_health;
 
-    float collision_damage;
+    float knockback_downtime;
 
     Vector2 size;
-    Rect hitbox;
 
     Vector2 position;
     Vector2 velocity;

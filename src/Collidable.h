@@ -1,22 +1,18 @@
-// #ifndef COLLIDABLE_H
-// #define COLLIDABLE_H
+#ifndef COLLIDABLE_H
+#define COLLIDABLE_H
 
-// #include "Rect.h"
+#include "Utils/Rect.h"
 
-// class Collidable {
+class Collidable {
 
-// public:
-//     bool collision(Collidable other);
+public:
+    virtual bool collision(Collidable& other) = 0;
 
-// private:
-//     float collision_damage;
+    virtual Rect getHitbox() = 0;
 
-//     Rect hitbox;
+protected:
+    float collision_damage;
+    Rect hitbox;
+};
 
-// };
-
-// bool Collidable::collision() {
-
-// }
-
-// #endif //COLLIDABLE_H
+#endif //COLLIDABLE_H

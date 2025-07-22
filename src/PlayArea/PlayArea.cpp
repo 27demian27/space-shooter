@@ -18,24 +18,27 @@ PlayArea::PlayArea(int width, int height) {
 void PlayArea::update(float dt) {
     bullets.erase(
         std::remove_if(bullets.begin(), bullets.end(),
-            [this, dt](Bullet& bullet) {
+            [this, dt](const std::unique_ptr<Bullet>& bulletPtr) {
+                Bullet& bullet = *bulletPtr;
+                bullet.update(dt);
                 if (!contains(bullet.getPosition().x, bullet.getPosition().y)) {
-                    // std::cout << "bullet x: " << bullet.getPosition().x <<" y: " << bullet.getPosition().y << "\n";
-                    // std::cout << "remove\n";
                     return true;
                 }
-                bullet.update(dt);
+                for (Entity& entity : entities) {
+                    if (bullet.collision(entity)) {
+                        entity.setCurrentHealth(entity.getCurrentHealth() - bullet.getDamage());
+                        return true;
+                    }
+                }
                 return false;
             }),
         bullets.end()
     );
 }
 
+
 bool PlayArea::contains(float x, float y) {
-    //std::cout << "contains x: " << x << " y: " << y << "\n";
-    // Assumption: rectangle is actually a rectangle.
-    return (x >= bounds.TL.x && x <= bounds.TR.x &&
-            y >= bounds.TL.y && y <= bounds.BL.y);
+    return bounds.contains(x, y);
 }
 
 void PlayArea::clipToArea(float& x, float& y) {
@@ -53,8 +56,14 @@ void PlayArea::clipToArea(float& x, float& y) {
     }
 }
 
-void PlayArea::addBullet(Bullet& bullet) {
-    bullets.push_back(bullet);
+void PlayArea::addBullet(std::unique_ptr<Bullet> bullet) {
+    bullets.push_back(std::move(bullet));
 }
 
-std::vector<Bullet> PlayArea::getBullets() { return bullets; }
+const std::vector<std::unique_ptr<Bullet>>& PlayArea::getBullets() const { return bullets; }
+
+void PlayArea::addEntity(Entity& entity) { entities.push_back(entity); }
+
+std::vector<Entity>& PlayArea::getEntities() { return entities; }
+
+const std::vector<Entity>& PlayArea::getEntities() const { return entities; }

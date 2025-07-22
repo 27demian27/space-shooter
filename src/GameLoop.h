@@ -24,6 +24,8 @@ private:
     sf::Texture const player_texture;
     sf::Sprite player_sprite;
 
+    sf::Font const font;
+
     HealthBar health_bar;
 
     PlayArea playArea;

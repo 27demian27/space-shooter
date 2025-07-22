@@ -2,9 +2,11 @@
 #define PLAYAREA_H
 
 #include <vector>
+#include <memory>
 
 #include "../Utils/Rect.h"
 #include "../Bullet/Bullet.h"
+#include "../Entity/Entity.h"
 
 class PlayArea {
 
@@ -20,12 +22,20 @@ public:
 
     void update(float dt);
 
-    void addBullet(Bullet& bullet);
-    std::vector<Bullet> getBullets();
+    void addBullet(std::unique_ptr<Bullet> bullet);
+    const std::vector<std::unique_ptr<Bullet>>& getBullets() const;
+
+    void addEntity(Entity& entity);
+
+    std::vector<Entity>& getEntities();
+
+    const std::vector<Entity>& getEntities() const;
 
 private:
     Rect bounds;
-    std::vector<Bullet> bullets;
+
+    std::vector<std::unique_ptr<Bullet>> bullets;
+    std::vector<Entity> entities;
 };
 
 #endif //PLAYAREA_H
