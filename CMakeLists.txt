@@ -35,10 +35,20 @@ add_executable(
 
     src/Graphics/HealthBar.h /
     src/Graphics/HealthBar.cpp /
+    src/Graphics/BoostBar.h /
 
     src/Utils/Vector2.h /
-    src/Utils/Rect.h/
+    src/Utils/Rect.h /
+    src/Utils/Rect.cpp /
+    src/Utils/Circle.h /
+    src/Utils/Circle.cpp /
+    src/Utils/Hitbox.h /
     src/Utils/ShipType.h /
+
+    src/Scripts/Script.h /
+    src/Scripts/Script.cpp /
+    src/Scripts/AsteroidScript.h /
+    src/Scripts/AsteroidScript.cpp
     
     )
 target_compile_features(main PRIVATE cxx_std_17)

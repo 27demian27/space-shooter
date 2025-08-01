@@ -8,7 +8,7 @@
 class Bullet : public Collidable {
 
 public:
-    Bullet(Shooter& shooter, float start_x, float start_y);
+    Bullet(Shooter& shooter, float start_x, float start_y, float size);
 
     void update(float dt);
 
@@ -16,7 +16,7 @@ public:
 
     bool collision(Collidable& other) override;
 
-    Rect getHitbox() override;
+    const float getCollisionDamage() const override;
 
     float getDamage() const;
 
@@ -27,11 +27,11 @@ private:
 
     Shooter& shooter;
 
-    void updateHitbox();
-
     float speed;
 
     Vector2 position;
+    Vector2 size;
+    
     Vector2 direction;
 };
 

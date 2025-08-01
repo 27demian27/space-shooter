@@ -16,6 +16,10 @@ public:
 
     bool shoot() override;
 
+    void setIsBoosting(bool is_boosting);
+    float getRemainingBoost();
+    float getBoostCapacity();
+
     Vector2 getVelocity();
     void setVelocity(Vector2 velocity);
 
@@ -28,12 +32,15 @@ public:
     float getY() override;
 
     Vector2 getSize();
+    void setSize(Vector2 size);
 
-    Rect getHitbox() override;
+    const float getCollisionDamage() const override;
+
     bool collision(Collidable& entity) override;
 
     float getKnockbackDowntime();
 
+    const Vector2 getPosition() const;
     void setPosition(Vector2 position);
 
     float getMoveSpeed();
@@ -46,7 +53,6 @@ public:
     float getCurrentHealth();
 
 private:
-    void updateHitbox();
 
     PlayArea& playArea;
 
@@ -62,6 +68,13 @@ private:
 
     float move_speed;
     float decellaration_rate;
+
+    bool is_boosting;
+    float boost_speed;
+    float boost_capacity;
+    float boost_remaining;
+    float boost_regen_rate;
+    bool boost_on_cd;
 
     ShipType ship_type;
 

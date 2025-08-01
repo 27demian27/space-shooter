@@ -1,19 +1,29 @@
 #ifndef ENTITY_H
 #define ENTITY_H
 
+#include <memory>
+
+#include "../Scripts/Script.h"
 #include "../Utils/Vector2.h"
-#include "../Utils/Rect.h"
+#include "../Utils/Hitbox.h"
 #include "../Collidable.h"
 
 class Entity : public Collidable {
 
 public:
 
-    Entity(Vector2 position, Vector2 size, float collision_damage);
+    Entity(
+        Vector2 position, 
+        Vector2 size, 
+        float max_health, 
+        float collision_damage, 
+        std::unique_ptr<Script> script,
+        HitboxShape hitboxShape
+        );
 
     bool collision(Collidable& player) override;
 
-    Rect getHitbox() override;
+    const float getCollisionDamage() const override;
 
     Vector2 getSize() const;
     Vector2 getPosition() const;
@@ -25,8 +35,11 @@ public:
     float getCurrentHealth() const;
     void setCurrentHealth(float new_health);
 
+    void setScript(std::unique_ptr<Script> script);
+
+    bool isAlive();
+
 private:
-    void updateHitbox();
     
     float max_health;
     float current_health;
@@ -34,7 +47,9 @@ private:
     Vector2 position;
     Vector2 size;
 
-    Rect hitbox;
+    std::unique_ptr<Script> script;
+
+    std::unique_ptr<Hitbox> hitbox;
 
 };
 

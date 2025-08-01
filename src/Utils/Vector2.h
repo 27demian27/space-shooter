@@ -11,11 +11,23 @@
 struct Vector2 {
     float x = 0, y = 0;
 
-    Vector2 operator*(float scalar) const {
+    bool operator==(const Vector2& other) const {
+        return x == other.x && y == other.y;
+    }
+
+    Vector2 operator-(const Vector2& other) const {
+        return {x - other.x, y - other.y};
+    }
+
+    Vector2 operator+(const Vector2& other) const {
+        return {x + other.x, y + other.y};
+    }
+
+    Vector2 operator*(const float scalar) const {
         return {x * scalar, y * scalar};
     }
 
-    Vector2 operator/(float scalar) const {
+    Vector2 operator/(const float scalar) const {
         return {x / scalar, y / scalar};
     }
 

@@ -1,11 +1,13 @@
 #ifndef GAMELOOP_H
 #define GAMELOOP_H
 
+#include <vector>
 #include <SFML/Graphics.hpp>
 
 #include "Player/Player.h"
 #include "PlayArea/PlayArea.h"
 #include "Graphics/HealthBar.h"
+#include "Graphics/BoostBar.h"
 
 class GameLoop {
 
@@ -16,6 +18,12 @@ public:
     void menu();
 
 private:
+
+    void spawnAsteroid(float dt);
+
+    float const asteroid_cooldown = 1.4f;
+    float curr_asteroid_cooldown;
+
     sf::RenderWindow window;
 
     Player player;
@@ -24,9 +32,12 @@ private:
     sf::Texture const player_texture;
     sf::Sprite player_sprite;
 
+    std::vector<sf::Texture> asteroid_textures;
+
     sf::Font const font;
 
     HealthBar health_bar;
+    BoostBar boost_bar;
 
     PlayArea playArea;
 

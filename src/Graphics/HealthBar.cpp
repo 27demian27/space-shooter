@@ -14,7 +14,7 @@ HealthBar::HealthBar(sf::RenderWindow& window, Player& player, int x, int y)
     float padding_y = 5.0f;
 
     // for(int i=0; i<10; ++i) {
-        
+        // blocks of 10 health
     // }
 }
 

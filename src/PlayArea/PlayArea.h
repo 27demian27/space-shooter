@@ -16,7 +16,8 @@ public:
 
     PlayArea(int width, int height);
 
-    bool contains(float x, float y);
+    bool contains(float x, float y) const;
+    bool contains(const Rect& rectHitbox);
 
     void clipToArea(float& x, float& y);
 
@@ -25,17 +26,15 @@ public:
     void addBullet(std::unique_ptr<Bullet> bullet);
     const std::vector<std::unique_ptr<Bullet>>& getBullets() const;
 
-    void addEntity(Entity& entity);
-
-    std::vector<Entity>& getEntities();
-
-    const std::vector<Entity>& getEntities() const;
+    void addEntity(std::unique_ptr<Entity> entity);
+    std::vector<std::unique_ptr<Entity>>& getEntities();
+    const std::vector<std::unique_ptr<Entity>>& getEntities() const;
 
 private:
     Rect bounds;
 
     std::vector<std::unique_ptr<Bullet>> bullets;
-    std::vector<Entity> entities;
+    std::vector<std::unique_ptr<Entity>> entities;
 };
 
 #endif //PLAYAREA_H
