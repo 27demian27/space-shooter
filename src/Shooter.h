@@ -22,7 +22,7 @@ protected:
 
     float bullet_damage;
     float bullet_speed;
-    float bullet_size;
+    Vector2 bullet_size;
 
     float rotation;
 };

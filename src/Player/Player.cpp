@@ -37,7 +37,6 @@ Player::Player(PlayArea& playArea)
    attack_speed = 2.5f;
    bullet_damage = 10.0f;
    bullet_speed = 600.0f;
-   bullet_size = 20.0f;
    collision_damage = 20.0f;
 
 }
@@ -50,7 +49,8 @@ bool Player::shoot() {
     switch (ship_type) {
         case ShipType::FROG: {
             bullet_damage = 5.0f;
-
+            bullet_size = {20.0f, 20.0f};
+            
             Vector2 left_local_offset  = {-size.x / 4.0f, -size.y / 3.0f};
             Vector2 right_local_offset = { size.x / 4.0f, -size.y / 3.0f};
 

@@ -8,7 +8,7 @@
 class Bullet : public Collidable {
 
 public:
-    Bullet(Shooter& shooter, float start_x, float start_y, float size);
+    Bullet(Shooter& shooter, float start_x, float start_y, Vector2 size);
 
     void update(float dt);
 

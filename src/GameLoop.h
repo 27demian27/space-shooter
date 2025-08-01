@@ -17,7 +17,13 @@ public:
     void run();
     void menu();
 
+
 private:
+    void loadBackgroundSpriteTextures();
+    void initBackgroundSprites();
+    void drawBackgroundSprites(float dt);
+
+    Vector2 getRandomPosition();
 
     void spawnAsteroid(float dt);
 
@@ -29,10 +35,14 @@ private:
     Player player;
     sf::Vector2f player_start_pos;
 
-    sf::Texture const player_texture;
+    sf::Texture const player_texture_thrust;
+    sf::Texture const player_texture_no_thrust;
     sf::Sprite player_sprite;
 
     std::vector<sf::Texture> asteroid_textures;
+
+    std::vector<sf::Sprite> background_sprites;
+    std::vector<sf::Texture> background_sprite_textures;
 
     sf::Font const font;
 

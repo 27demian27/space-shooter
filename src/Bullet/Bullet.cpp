@@ -4,10 +4,10 @@
 
 #include <cmath>
 
-Bullet::Bullet(Shooter& shooter, float start_x, float start_y, float size)
- : Collidable(createHitbox({start_x, start_y}, {size, size}, HitboxShape::CIRCLE)),
+Bullet::Bullet(Shooter& shooter, float start_x, float start_y, Vector2 size)
+ : Collidable(createHitbox({start_x, start_y}, size, HitboxShape::CIRCLE)),
    position({start_x, start_y}),
-   size({size, size}),
+   size(size),
    shooter(shooter) 
 {
     float theta = (shooter.getRotation() - 90.0f) * (M_PI / 180.0f);

@@ -2,6 +2,7 @@
 #include <SFML/Graphics.hpp>
 
 #include <iostream>
+#include <random>
 
 #include "GameLoop.h"
 #include "Utils/Hitbox.h"
@@ -13,8 +14,9 @@ GameLoop::GameLoop(int width, int height)
  :  window(sf::VideoMode({static_cast<uint>(width), static_cast<uint>(height)}), "Space Shooter"),
     playArea(width, height),
     player(playArea),
-    player_texture("assets/textures/space_ship.png"),
-    player_sprite(player_texture),
+    player_texture_thrust("assets/textures/space_ship.png"),
+    player_texture_no_thrust("assets/textures/space_ship_no_flames.png"),
+    player_sprite(player_texture_thrust),
     health_bar(window, player, 20, height - 20.0f - 20),
     font("assets/fonts/public_pixel.ttf"),
     boost_bar(window, player, font)
@@ -35,8 +37,65 @@ GameLoop::GameLoop(int width, int height)
     player_sprite.setOrigin(player_sprite.getLocalBounds().getCenter());
 
     asteroid_textures.push_back(sf::Texture("assets/textures/asteroid2.png"));
-    asteroid_textures[0].setSmooth(true);
     curr_asteroid_cooldown = 0.0f;
+
+    loadBackgroundSpriteTextures();
+    initBackgroundSprites();
+}
+
+void GameLoop::loadBackgroundSpriteTextures() {
+    sf::Texture texture("assets/textures/mini_star.png");
+    background_sprite_textures.push_back(texture);
+
+}
+
+Vector2 GameLoop::getRandomPosition() {
+    static std::random_device rd;
+    static std::mt19937 gen(rd());
+    std::uniform_real_distribution<float> distX(0.0f, width);
+    std::uniform_real_distribution<float> distY(0.0f, height);
+
+    return { distX(gen), distY(gen) };
+}
+
+void GameLoop::initBackgroundSprites() {
+    int max_background_sprites = 80;
+
+    for (int i = 0; i < max_background_sprites; i++) {
+        Vector2 pos = getRandomPosition();
+        sf::Sprite sprite(background_sprite_textures[i % background_sprite_textures.size()]);
+        sprite.setPosition({pos.x, pos.y});
+        background_sprites.push_back(sprite);
+    }
+
+}
+
+void GameLoop::drawBackgroundSprites(float dt) {
+    float move_speed = 500.0f;
+    int max_background_sprites = 200;
+
+    for (auto it = background_sprites.begin(); it != background_sprites.end(); ) {
+        sf::Sprite& sprite = *it;
+        window.draw(sprite);
+
+        sf::Vector2f pos = sprite.getPosition();
+        sprite.setPosition({pos.x, pos.y + move_speed * dt});
+
+
+        if (sprite.getPosition().y > height) {
+            it = background_sprites.erase(it);
+        } else {
+            ++it;
+        }
+    }
+
+    for (int i = background_sprites.size()-1; i < max_background_sprites; i++) {
+        Vector2 pos = getRandomPosition();
+        sf::Sprite sprite(background_sprite_textures[i % background_sprite_textures.size()]);
+        sprite.setPosition({pos.x, pos.y - height});
+        background_sprites.push_back(sprite);
+    }
+
 }
 
 void GameLoop::spawnAsteroid(float dt) {
@@ -164,10 +223,11 @@ void GameLoop::run() {
             player.update(dt);
             playArea.update(dt);
 
+            drawBackgroundSprites(dt);
 
             render();
 
-            drawDebug();
+            //drawDebug();
 
             health_bar.draw();
             boost_bar.draw();
@@ -181,7 +241,11 @@ void GameLoop::run() {
 void GameLoop::render() {
     player_sprite.setPosition({player_start_pos.x + player.getX(), player_start_pos.y + player.getY()});
     player_sprite.setRotation(sf::degrees(player.getRotation()));
-
+    if(player.getRotation() >= 90) {
+        player_sprite.setTexture(player_texture_no_thrust);
+    } else {
+        player_sprite.setTexture(player_texture_thrust);
+    }
 
     for (const auto& entity_ptr : playArea.getEntities()) {
         const Entity& entity = *entity_ptr;
