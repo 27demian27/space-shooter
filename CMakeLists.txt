@@ -27,11 +27,14 @@ add_executable(
     src/Bullet/Bullet.h /
     src/Bullet/Bullet.cpp /
 
-    src/Entity/Entity.h /
-    src/Entity/Entity.cpp /
+    src/Entities/Entity.h /
+    src/Entities/Entity.cpp /
+    src/Entities/NormalEnemy.h /
+    src/Entities/NormalEnemy.cpp /
 
     src/Shooter.h /
     src/Collidable.h /
+    src/EnemyTypes.h /
 
     src/Graphics/HealthBar.h /
     src/Graphics/HealthBar.cpp /

@@ -2,12 +2,14 @@
 #define GAMELOOP_H
 
 #include <vector>
+#include <map>
 #include <SFML/Graphics.hpp>
 
 #include "Player/Player.h"
 #include "PlayArea/PlayArea.h"
 #include "Graphics/HealthBar.h"
 #include "Graphics/BoostBar.h"
+#include "EnemyTypes.h"
 
 class GameLoop {
 
@@ -19,13 +21,6 @@ public:
 
 
 private:
-    void loadBackgroundSpriteTextures();
-    void initBackgroundSprites();
-    void drawBackgroundSprites(float dt);
-
-    Vector2 getRandomPosition();
-
-    void spawnAsteroid(float dt);
 
     float const asteroid_cooldown = 1.4f;
     float curr_asteroid_cooldown;
@@ -53,6 +48,16 @@ private:
 
     int width;
     int height;
+
+    void spawnEnemy(EnemyType type, Vector2 position);
+
+    void loadBackgroundSpriteTextures();
+    void initBackgroundSprites();
+    void drawBackgroundSprites(float dt);
+
+    Vector2 getRandomPosition();
+
+    void spawnAsteroid(float dt);
 
     void handleInput();
     void update(float dt);

@@ -1,6 +1,7 @@
 #define _USE_MATH_DEFINES
 
 #include <cmath>
+#include <cfloat>
 #include <iostream>
 
 #include "Player.h"
@@ -29,6 +30,7 @@ Player::Player(PlayArea& playArea)
    boost_capacity(2.0f),
    boost_remaining(boost_capacity),
    boost_regen_rate(0.3f),
+   last_taken_dmg_ago(FLT_MAX),
    ship_type(ShipType::FROG)
 {
    rotation = 0.0f,
@@ -49,8 +51,9 @@ bool Player::shoot() {
     switch (ship_type) {
         case ShipType::FROG: {
             bullet_damage = 5.0f;
-            bullet_size = {20.0f, 20.0f};
-            
+            bullet_size = {15.0f, 15.0f};
+            float bullet_health = 20.0f;
+
             Vector2 left_local_offset  = {-size.x / 4.0f, -size.y / 3.0f};
             Vector2 right_local_offset = { size.x / 4.0f, -size.y / 3.0f};
 
@@ -61,13 +64,17 @@ bool Player::shoot() {
                 *this, 
                 position.x + left_world_offset.x, 
                 position.y + left_world_offset.y, 
-                bullet_size
+                bullet_size,
+                bullet_health,
+                true
             ));
             playArea.addBullet(std::make_unique<Bullet>(
                 *this, 
                 position.x + right_world_offset.x, 
                 position.y + right_world_offset.y, 
-                bullet_size
+                bullet_size,
+                bullet_health,
+                true
             ));
             break;
         }
@@ -98,6 +105,8 @@ bool Player::collision(Collidable& entity) {
 
 void Player::update(float dt) {
     updateHitbox(position, HITBOX_SIZE);
+
+    last_taken_dmg_ago += dt;
 
     position.x = position.x + velocity.x * dt;
     position.y = position.y + velocity.y * dt;
@@ -142,10 +151,9 @@ void Player::update(float dt) {
         remaining_attack_cooldown = remaining_attack_cooldown - dt;
     }
 
-    for (const auto& entity_ptr : playArea.getEntities()) {
+    for (auto const& entity_ptr : playArea.getEntities()) {
         Entity& entity = *entity_ptr;
         if (collision(entity)) {
-            std::cout << "Hit entity\n";
             Vector2 knockback_direction(
                 {
                     position.x - entity.getPosition().x, 
@@ -161,7 +169,38 @@ void Player::update(float dt) {
             knockback_downtime = 0.25f;
 
             current_health -= entity.getCollisionDamage();
-            entity.setCurrentHealth(entity.getCurrentHealth() - collision_damage);
+            last_taken_dmg_ago = 0.0f;
+            entity.takeDamage(collision_damage);
+        }
+    }
+    for (auto const& enemy_ptr : playArea.getEnemies(EnemyType::NORMAL)) {
+        Entity& enemy = *enemy_ptr;
+        if (collision(enemy)) {
+            Vector2 knockback_direction(
+                {
+                    position.x - enemy.getPosition().x, 
+                    position.y - enemy.getPosition().y
+                });
+            knockback_direction = knockback_direction.normalized();
+
+            float knockback_speed = 400.0f;
+
+            velocity.x = knockback_direction.x * knockback_speed;
+            velocity.y = knockback_direction.y * knockback_speed;
+
+            knockback_downtime = 0.25f;
+
+            current_health -= enemy.getCollisionDamage();
+            last_taken_dmg_ago = 0.0f;
+            enemy.takeDamage(collision_damage);
+        }
+    }
+    for(auto const& bullet_ptr : playArea.getBullets()) {
+        Bullet& bullet = *bullet_ptr;
+        if (!bullet.isFromPlayer() && collision(bullet)) {
+            current_health -= bullet.getDamage();
+            last_taken_dmg_ago = 0.0f;
+            bullet.deactivate();
         }
     }
 
@@ -198,7 +237,7 @@ void Player::setVelocity(Vector2 velocity) {
     
 }
 
-const Vector2 Player::getPosition() const { return position; }
+const Vector2& Player::getPosition() const { return position; }
 
 void Player::setPosition(Vector2 position) { this->position = position; }
 
@@ -221,6 +260,8 @@ Vector2 Player::getSize() { return size; }
 void Player::setSize(Vector2 size) { this->size = size; }
 
 const float Player::getCollisionDamage() const { return collision_damage; }
+
+float Player::lastTakenDamage() const { return last_taken_dmg_ago; }
 
 float Player::getKnockbackDowntime() { return knockback_downtime; }
 

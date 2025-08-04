@@ -8,8 +8,15 @@
 class Script {
 
 public:
-    virtual void play() = 0;
-    virtual Vector2 update(Vector2 entity_pos, float dt) = 0;
+
+    Script();
+
+    Script(Vector2 statonary_pos);
+
+    ~Script() = default;
+
+    virtual void play();
+    virtual Vector2 update(Vector2 entity_pos, float dt);
 
     void addCheckpoint(Vector2 position);
     void setCurrentCheckpoint(Vector2 position);
@@ -21,6 +28,8 @@ public:
 protected:
 
     bool is_playing;
+    bool is_stationary;
+
     float elapsed_time;
 
     float current_move_speed;

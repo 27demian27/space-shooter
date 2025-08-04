@@ -21,6 +21,8 @@ public:
         HitboxShape hitboxShape
         );
 
+    virtual ~Entity() = default;
+
     bool collision(Collidable& player) override;
 
     const float getCollisionDamage() const override;
@@ -28,21 +30,24 @@ public:
     Vector2 getSize() const;
     Vector2 getPosition() const;
 
-    void update(float dt);
+    virtual void update(float dt);
 
     float getMaxHealth() const;
 
     float getCurrentHealth() const;
-    void setCurrentHealth(float new_health);
+    void takeDamage(float damage);
+    float lastTakenDamage() const;
 
     void setScript(std::unique_ptr<Script> script);
 
     bool isAlive();
 
-private:
+protected:
     
     float max_health;
     float current_health;
+
+    float last_taken_dmg_ago;
 
     Vector2 position;
     Vector2 size;

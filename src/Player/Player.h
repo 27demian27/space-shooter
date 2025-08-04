@@ -28,8 +28,8 @@ public:
     void setRotation(Vector2 mousePos);
     void setRotation(float rotation);
 
-    float getX() override;
-    float getY() override;
+    float getX();
+    float getY();
 
     Vector2 getSize();
     void setSize(Vector2 size);
@@ -38,9 +38,11 @@ public:
 
     bool collision(Collidable& entity) override;
 
+    float lastTakenDamage() const;
+
     float getKnockbackDowntime();
 
-    const Vector2 getPosition() const;
+    const Vector2& getPosition() const;
     void setPosition(Vector2 position);
 
     float getMoveSpeed();
@@ -75,6 +77,8 @@ private:
     float boost_remaining;
     float boost_regen_rate;
     bool boost_on_cd;
+
+    float last_taken_dmg_ago;
 
     ShipType ship_type;
 

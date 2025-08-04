@@ -4,16 +4,14 @@
 class Shooter {
 
 public:
+    virtual ~Shooter() = default;
+       
     virtual bool shoot() = 0;
     
     virtual float getRotation() = 0;
     virtual float getBulletSpeed() = 0;
     virtual float getBulletDamage() = 0;
 
-    virtual float getX() = 0;
-    virtual float getY() = 0;
-
-    virtual ~Shooter() = default;   
 
 protected:
     float attack_speed;

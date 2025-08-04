@@ -5,10 +5,12 @@
 #include <random>
 
 #include "GameLoop.h"
+#include "Entities/NormalEnemy.h"
 #include "Utils/Hitbox.h"
 #include "Scripts/AsteroidScript.h"
 
 #define MAX_ENTITY_COUNT 10
+#define DMG_ANIMATION_DURATION 0.05f
 
 GameLoop::GameLoop(int width, int height)
  :  window(sf::VideoMode({static_cast<uint>(width), static_cast<uint>(height)}), "Space Shooter"),
@@ -41,12 +43,34 @@ GameLoop::GameLoop(int width, int height)
 
     loadBackgroundSpriteTextures();
     initBackgroundSprites();
+
+    spawnEnemy(EnemyType::NORMAL, {-200, -400});
+    spawnEnemy(EnemyType::NORMAL, {0, -400});
+    spawnEnemy(EnemyType::NORMAL, {200, -400});
 }
 
 void GameLoop::loadBackgroundSpriteTextures() {
     sf::Texture texture("assets/textures/mini_star.png");
     background_sprite_textures.push_back(texture);
 
+}
+
+void GameLoop::spawnEnemy(EnemyType type, Vector2 position) {
+    if (type == EnemyType::NORMAL) {
+        auto script = std::make_unique<Script>(position);
+        playArea.addEnemy(EnemyType::NORMAL,
+            std::make_unique<NormalEnemy>(
+                position,
+                Vector2({100, 100}),
+                100.0f,
+                10.0f,
+                std::move(script),
+                HitboxShape::RECT,
+                player.getPosition(),
+                playArea
+            )
+        );
+    }
 }
 
 Vector2 GameLoop::getRandomPosition() {
@@ -111,7 +135,7 @@ void GameLoop::spawnAsteroid(float dt) {
         Vector2 entity_start_pos = player_pos - direction * D;
         Vector2 entity_end_pos = player_pos + direction * D;
 
-        int MAX_SIZE = 300;
+        int MAX_SIZE = 200;
         float MAX_MAX_HEALTH = 30;
         int MIN_SIZE = 10;
         float size = static_cast<float>(MIN_SIZE + rand() % (MAX_SIZE - MIN_SIZE));
@@ -246,9 +270,14 @@ void GameLoop::render() {
     } else {
         player_sprite.setTexture(player_texture_thrust);
     }
+    if(player.lastTakenDamage() <= DMG_ANIMATION_DURATION) {
+        player_sprite.setColor(sf::Color::Red);
+    } else {
+        player_sprite.setColor(sf::Color::White);
+    }
 
-    for (const auto& entity_ptr : playArea.getEntities()) {
-        const Entity& entity = *entity_ptr;
+    for (auto const& entity_ptr : playArea.getEntities()) {
+        Entity const& entity = *entity_ptr;
 
         sf::Sprite entity_sprite(asteroid_textures[0]);
         sf::FloatRect localBounds = entity_sprite.getLocalBounds();
@@ -259,15 +288,23 @@ void GameLoop::render() {
         entity_sprite.setScale({scale_x, scale_y});
         entity_sprite.setOrigin(localBounds.getCenter());
         entity_sprite.setPosition({width / 2.0f + entity.getPosition().x, height / 2.0f + entity.getPosition().y});
+        if (entity.lastTakenDamage() <= DMG_ANIMATION_DURATION) {
+            entity_sprite.setColor(sf::Color::Red);
+        }
         window.draw(entity_sprite);
     }
-    for (const auto& bullet_ptr : playArea.getBullets()) {
-        const Bullet& bullet = *bullet_ptr;
+    for (auto const& bullet_ptr : playArea.getBullets()) {
+        Bullet const& bullet = *bullet_ptr;
 
         sf::CircleShape bullet_sprite(5.0f);
-        bullet_sprite.setFillColor(sf::Color(145, 5, 0));
         bullet_sprite.setOutlineThickness(2.0f);
-        bullet_sprite.setOutlineColor(sf::Color(255, 88, 82));
+        if (bullet.isFromPlayer()) {
+            bullet_sprite.setFillColor(sf::Color(3, 157, 252));
+            bullet_sprite.setOutlineColor(sf::Color(47, 116, 158));
+        } else {
+            bullet_sprite.setFillColor(sf::Color(145, 5, 0));
+            bullet_sprite.setOutlineColor(sf::Color(255, 88, 82));
+        }
         bullet_sprite.setOrigin(bullet_sprite.getLocalBounds().getCenter());
         bullet_sprite.setPosition({
             bullet.getPosition().x + player_start_pos.x,
@@ -276,6 +313,20 @@ void GameLoop::render() {
 
         window.draw(bullet_sprite);
     }
+
+    for (auto const& enemy_ptr : playArea.getEnemies(EnemyType::NORMAL)) {
+        Entity const& enemy = *enemy_ptr;
+        sf::RectangleShape enemy_sprite({enemy.getSize().x, enemy.getSize().y});
+
+        sf::FloatRect localBounds = enemy_sprite.getLocalBounds();
+        enemy_sprite.setOrigin(localBounds.getCenter());
+        enemy_sprite.setPosition({width / 2.0f + enemy.getPosition().x, height / 2.0f + enemy.getPosition().y});
+        if (enemy.lastTakenDamage() <= DMG_ANIMATION_DURATION) {
+            enemy_sprite.setFillColor(sf::Color::Red);
+        }
+        window.draw(enemy_sprite);
+    }
+
     window.draw(player_sprite); 
 }
 
