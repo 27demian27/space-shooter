@@ -81,11 +81,6 @@ private:
     float last_taken_dmg_ago;
 
     ShipType ship_type;
-
-    enum ShootingMode {
-        NORMAL,
-        SPECIAL
-    };
 };
 
 #endif //PLAYER_H

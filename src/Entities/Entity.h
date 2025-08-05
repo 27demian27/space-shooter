@@ -28,6 +28,8 @@ public:
     const float getCollisionDamage() const override;
 
     Vector2 getSize() const;
+    void setSize(Vector2 size);
+
     Vector2 getPosition() const;
 
     virtual void update(float dt);

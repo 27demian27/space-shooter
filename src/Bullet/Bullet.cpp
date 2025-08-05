@@ -5,26 +5,28 @@
 #include <cmath>
 
 Bullet::Bullet(
-    Shooter& shooter, 
+    float speed,
+    float damage,
+    float shooter_rotation,
     float start_x, 
     float start_y, 
     Vector2 size, 
     float max_health, 
-    bool is_from_player
+    bool is_from_player,
+    HitboxShape hitboxShape
 )
- : Collidable(createHitbox({start_x, start_y}, size, HitboxShape::CIRCLE)),
+ : Collidable(createHitbox({start_x, start_y}, size, hitboxShape)),
    position({start_x, start_y}),
    is_active(true),
    size(size),
    max_health(max_health),
    curr_health(max_health),
    is_from_player(is_from_player),
-   shooter(shooter)
+   speed(speed)
 {
-    float theta = (shooter.getRotation() - 90.0f) * (M_PI / 180.0f);
+    collision_damage = damage;
+    float theta = (shooter_rotation - 90.0f) * (M_PI / 180.0f);
     direction = Vector2({std::cos(theta), std::sin(theta)});
-    speed = shooter.getBulletSpeed();
-    collision_damage = shooter.getBulletDamage();
 }
 
 bool Bullet::collision(Collidable& other) {
@@ -45,7 +47,9 @@ void Bullet::update(float dt) {
 Vector2 Bullet::getPosition() { return position; }
 Vector2 Bullet::getPosition() const { return position; }
 
-float Bullet::getDamage() const { return shooter.getBulletDamage(); }
+float Bullet::getDamage() const { return collision_damage; }
+
+Vector2 Bullet::getSize() const { return size; }
 
 bool Bullet::isActive() { return is_active; }
 void Bullet::deactivate() { is_active = false; }

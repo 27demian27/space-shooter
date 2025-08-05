@@ -29,6 +29,7 @@ public:
 private:
 
     PlayArea& playArea;
+    Vector2 aim_direction;
 
     Vector2 const& player_pos;
 };

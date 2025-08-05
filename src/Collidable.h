@@ -20,7 +20,7 @@ public:
 
     virtual bool collision(Collidable& other) = 0;
 
-    const Hitbox& getHitbox() {
+    Hitbox const& getHitbox() const {
         if (!hitbox) {
             std::cerr << "Error: hitbox is null in getHitbox()\n";
             throw std::runtime_error("Null Hitbox access");

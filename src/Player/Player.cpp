@@ -33,14 +33,16 @@ Player::Player(PlayArea& playArea)
    last_taken_dmg_ago(FLT_MAX),
    ship_type(ShipType::FROG)
 {
-   rotation = 0.0f,
-   remaining_attack_cooldown = 0.0f;
-   can_shoot = true;
-   attack_speed = 2.5f;
-   bullet_damage = 10.0f;
-   bullet_speed = 600.0f;
-   collision_damage = 20.0f;
-
+    rotation = 0.0f,
+    attack_speed = 2.5f;
+    remaining_attack_cooldown = 0.0f;
+    special_attack_cooldown = 2.0f;
+    remaining_attack_cooldown = 0.0f;
+    can_shoot = true;
+    bullet_damage = 10.0f;
+    bullet_speed = 600.0f;
+    collision_damage = 20.0f;
+    shootingMode = NORMAL_ATTACK;
 }
 
 bool Player::shoot() {
@@ -50,32 +52,60 @@ bool Player::shoot() {
 
     switch (ship_type) {
         case ShipType::FROG: {
-            bullet_damage = 5.0f;
-            bullet_size = {15.0f, 15.0f};
-            float bullet_health = 20.0f;
+            if (shootingMode == NORMAL_ATTACK) {
+                bullet_damage = 5.0f;
+                bullet_size = {15.0f, 15.0f};
+                float bullet_health = 20.0f;
 
-            Vector2 left_local_offset  = {-size.x / 4.0f, -size.y / 3.0f};
-            Vector2 right_local_offset = { size.x / 4.0f, -size.y / 3.0f};
+                Vector2 left_local_offset  = {-size.x / 4.0f, -size.y / 3.0f};
+                Vector2 right_local_offset = { size.x / 4.0f, -size.y / 3.0f};
 
-            Vector2 left_world_offset  = rotate(left_local_offset, theta);
-            Vector2 right_world_offset = rotate(right_local_offset, theta);
+                Vector2 left_world_offset  = rotate(left_local_offset, theta);
+                Vector2 right_world_offset = rotate(right_local_offset, theta);
 
-            playArea.addBullet(std::make_unique<Bullet>(
-                *this, 
-                position.x + left_world_offset.x, 
-                position.y + left_world_offset.y, 
-                bullet_size,
-                bullet_health,
-                true
-            ));
-            playArea.addBullet(std::make_unique<Bullet>(
-                *this, 
-                position.x + right_world_offset.x, 
-                position.y + right_world_offset.y, 
-                bullet_size,
-                bullet_health,
-                true
-            ));
+                playArea.addBullet(std::make_unique<Bullet>(
+                    bullet_speed,
+                    bullet_damage,
+                    rotation,
+                    position.x + left_world_offset.x, 
+                    position.y + left_world_offset.y, 
+                    bullet_size,
+                    bullet_health,
+                    true,
+                    CIRCLE
+                ));
+                playArea.addBullet(std::make_unique<Bullet>(
+                    bullet_speed,
+                    bullet_damage,
+                    rotation, 
+                    position.x + right_world_offset.x, 
+                    position.y + right_world_offset.y, 
+                    bullet_size,
+                    bullet_health,
+                    true,
+                    CIRCLE
+                ));
+            } else if (shootingMode == SPECIAL_ATTACK) {
+                if (remaining_special_attack_cooldown > 0) {
+                    return false;
+                }
+                remaining_special_attack_cooldown = special_attack_cooldown;
+
+                bullet_damage = 10.0f;
+                bullet_size = {100.0f, 30.0f};
+                float bullet_health = 40.0f;
+                playArea.addBullet(std::make_unique<Bullet>(
+                    bullet_speed,
+                    bullet_damage,
+                    rotation,
+                    position.x, 
+                    position.y, 
+                    bullet_size,
+                    bullet_health,
+                    true,
+                    RECT
+                ));
+            }
             break;
         }
 
@@ -148,7 +178,10 @@ void Player::update(float dt) {
         can_shoot = true;
     } else {
         can_shoot = false;
-        remaining_attack_cooldown = remaining_attack_cooldown - dt;
+        remaining_attack_cooldown-= dt;
+    }
+    if(remaining_special_attack_cooldown > 0) {
+        remaining_special_attack_cooldown -= dt;
     }
 
     for (auto const& entity_ptr : playArea.getEntities()) {

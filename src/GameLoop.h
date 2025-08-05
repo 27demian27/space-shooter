@@ -22,7 +22,7 @@ public:
 
 private:
 
-    float const asteroid_cooldown = 1.4f;
+    float asteroid_cooldown;
     float curr_asteroid_cooldown;
 
     sf::RenderWindow window;
@@ -35,6 +35,7 @@ private:
     sf::Sprite player_sprite;
 
     std::vector<sf::Texture> asteroid_textures;
+    std::vector<sf::Texture> enemy_textures;
 
     std::vector<sf::Sprite> background_sprites;
     std::vector<sf::Texture> background_sprite_textures;

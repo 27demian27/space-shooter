@@ -11,6 +11,7 @@
 
 #define MAX_ENTITY_COUNT 10
 #define DMG_ANIMATION_DURATION 0.05f
+#define ASTEROID_COOLDOWN 5.0f
 
 GameLoop::GameLoop(int width, int height)
  :  window(sf::VideoMode({static_cast<uint>(width), static_cast<uint>(height)}), "Space Shooter"),
@@ -21,7 +22,8 @@ GameLoop::GameLoop(int width, int height)
     player_sprite(player_texture_thrust),
     health_bar(window, player, 20, height - 20.0f - 20),
     font("assets/fonts/public_pixel.ttf"),
-    boost_bar(window, player, font)
+    boost_bar(window, player, font),
+    asteroid_cooldown(ASTEROID_COOLDOWN)
 {   
     sf::VideoMode desktop = sf::VideoMode::getDesktopMode();
     window.setPosition(sf::Vector2i(0, 0));
@@ -44,9 +46,9 @@ GameLoop::GameLoop(int width, int height)
     loadBackgroundSpriteTextures();
     initBackgroundSprites();
 
-    spawnEnemy(EnemyType::NORMAL, {-200, -400});
+    //spawnEnemy(EnemyType::NORMAL, {-200, -400});
     spawnEnemy(EnemyType::NORMAL, {0, -400});
-    spawnEnemy(EnemyType::NORMAL, {200, -400});
+    //spawnEnemy(EnemyType::NORMAL, {200, -400});
 }
 
 void GameLoop::loadBackgroundSpriteTextures() {
@@ -163,6 +165,8 @@ void GameLoop::run() {
     sf::Texture const background_texture("assets/textures/space_background.jpg");
     sf::Sprite background_sprite(background_texture);
  
+    enemy_textures.push_back(sf::Texture("assets/textures/enemy1.png"));
+
     sf::SoundBuffer buffer;
     if (!buffer.loadFromFile("assets/sfx/shoot_sound.wav"))
         return;
@@ -184,6 +188,11 @@ void GameLoop::run() {
     sf::Vector2f windowCenterPos(windowSize.x / 2.0f, windowSize.y / 2.0f);
     menu_title_text.setPosition({windowCenterPos.x, windowCenterPos.y - 300.0f});
     game_over_text.setPosition({windowCenterPos.x, windowCenterPos.y - 300.0f});
+
+    sf::RectangleShape special_attack_ready_box({40, 20});
+    special_attack_ready_box.setOrigin(special_attack_ready_box.getLocalBounds().getCenter());
+    special_attack_ready_box.setPosition({width / 2.0f, height - 40.0f + 10.0f});
+    special_attack_ready_box.setFillColor(sf::Color::Green);
 
     bool in_menu = true;
 
@@ -236,9 +245,17 @@ void GameLoop::run() {
                 player.setVelocity(velocity);
             }
 
-            if (sf::Mouse::isButtonPressed(sf::Mouse::Button::Left)) 
+            if (sf::Mouse::isButtonPressed(sf::Mouse::Button::Left)) {
+                player.setShootingMode(NORMAL_ATTACK);
                 if(player.shoot())
                     shoot_sound.play();
+            } 
+
+            if (sf::Keyboard::isKeyPressed(sf::Keyboard::Scancode::Space)) {
+                    player.setShootingMode(SPECIAL_ATTACK);
+                    if(player.shoot())
+                        shoot_sound.play();
+            }
 
             if (playArea.getEntities().size() < MAX_ENTITY_COUNT) {
                 spawnAsteroid(dt);
@@ -255,6 +272,13 @@ void GameLoop::run() {
 
             health_bar.draw();
             boost_bar.draw();
+
+            if (player.getRemainingSpecialAttackCooldown() > 0) {
+                special_attack_ready_box.setFillColor(sf::Color(128, 128, 128));
+            } else {
+                special_attack_ready_box.setFillColor(sf::Color::Green);
+            }
+            window.draw(special_attack_ready_box);
 
         }
  
@@ -296,33 +320,45 @@ void GameLoop::render() {
     for (auto const& bullet_ptr : playArea.getBullets()) {
         Bullet const& bullet = *bullet_ptr;
 
-        sf::CircleShape bullet_sprite(5.0f);
-        bullet_sprite.setOutlineThickness(2.0f);
-        if (bullet.isFromPlayer()) {
-            bullet_sprite.setFillColor(sf::Color(3, 157, 252));
-            bullet_sprite.setOutlineColor(sf::Color(47, 116, 158));
+        std::unique_ptr<sf::Shape> bullet_sprite;
+
+        if (bullet.getSize().x == bullet.getSize().y) {
+            bullet_sprite = std::make_unique<sf::CircleShape>(bullet.getHitbox().size().x / 2.0f);
         } else {
-            bullet_sprite.setFillColor(sf::Color(145, 5, 0));
-            bullet_sprite.setOutlineColor(sf::Color(255, 88, 82));
+            bullet_sprite = std::make_unique<sf::RectangleShape>(sf::Vector2f{bullet.getSize().x, bullet.getSize().y});
         }
-        bullet_sprite.setOrigin(bullet_sprite.getLocalBounds().getCenter());
-        bullet_sprite.setPosition({
+
+        bullet_sprite->setOutlineThickness(2.0f);
+        if (bullet.isFromPlayer()) {
+            bullet_sprite->setFillColor(sf::Color(3, 157, 252));
+            bullet_sprite->setOutlineColor(sf::Color(47, 116, 158));
+        } else {
+            bullet_sprite->setFillColor(sf::Color(145, 5, 0));
+            bullet_sprite->setOutlineColor(sf::Color(255, 88, 82));
+        }
+        bullet_sprite->setOrigin(bullet_sprite->getLocalBounds().getCenter());
+        bullet_sprite->setPosition({
             bullet.getPosition().x + player_start_pos.x,
             bullet.getPosition().y + player_start_pos.y
         });
 
-        window.draw(bullet_sprite);
+        window.draw(*bullet_sprite);
     }
 
     for (auto const& enemy_ptr : playArea.getEnemies(EnemyType::NORMAL)) {
-        Entity const& enemy = *enemy_ptr;
-        sf::RectangleShape enemy_sprite({enemy.getSize().x, enemy.getSize().y});
+        NormalEnemy* enemy = dynamic_cast<NormalEnemy*>(enemy_ptr.get());
 
+        sf::Sprite enemy_sprite(enemy_textures[0]);
         sf::FloatRect localBounds = enemy_sprite.getLocalBounds();
+
+        enemy_sprite.scale({0.8f, 0.8f});
+
+        enemy->setSize({enemy_sprite.getGlobalBounds().size.x, enemy_sprite.getGlobalBounds().size.y});
         enemy_sprite.setOrigin(localBounds.getCenter());
-        enemy_sprite.setPosition({width / 2.0f + enemy.getPosition().x, height / 2.0f + enemy.getPosition().y});
-        if (enemy.lastTakenDamage() <= DMG_ANIMATION_DURATION) {
-            enemy_sprite.setFillColor(sf::Color::Red);
+        enemy_sprite.setPosition({width / 2.0f + enemy->getPosition().x, height / 2.0f + enemy->getPosition().y});
+        enemy_sprite.setRotation(sf::degrees(enemy->getRotation()-180.0f));
+        if (enemy->lastTakenDamage() <= DMG_ANIMATION_DURATION) {
+            enemy_sprite.setColor(sf::Color::Red);
         }
         window.draw(enemy_sprite);
     }
@@ -389,12 +425,18 @@ void GameLoop::drawDebug() {
 
     for (const auto& bullet_ptr : playArea.getBullets()) {
         Bullet& bullet = *bullet_ptr;
-        sf::CircleShape bullet_hitbox(bullet.getHitbox().size().x / 2.0f);
-        bullet_hitbox.setOutlineThickness(3.0f);
-        bullet_hitbox.setFillColor(sf::Color::Transparent);
-        bullet_hitbox.setOrigin(bullet_hitbox.getLocalBounds().getCenter());
-        bullet_hitbox.setPosition({width / 2.0f + bullet.getPosition().x, height / 2.0f + bullet.getPosition().y});
-        window.draw(bullet_hitbox);
+        std::unique_ptr<sf::Shape> bullet_hitbox;
+
+        if (bullet.getSize().x == bullet.getSize().y) {
+            bullet_hitbox = std::make_unique<sf::CircleShape>(bullet.getHitbox().size().x / 2.0f);
+        } else {
+            bullet_hitbox = std::make_unique<sf::RectangleShape>(sf::Vector2f{bullet.getSize().x, bullet.getSize().y});
+        }
+        bullet_hitbox->setOutlineThickness(3.0f);
+        bullet_hitbox->setFillColor(sf::Color::Transparent);
+        bullet_hitbox->setOrigin(bullet_hitbox->getLocalBounds().getCenter());
+        bullet_hitbox->setPosition({width / 2.0f + bullet.getPosition().x, height / 2.0f + bullet.getPosition().y});
+        window.draw(*bullet_hitbox);
     }
 
     angle_text.setString("r: "+ std::to_string(player.getRotation()));

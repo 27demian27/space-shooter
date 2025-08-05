@@ -37,6 +37,10 @@ void PlayArea::update(float dt) {
                 break;
             }
         }
+        
+        if (!bullet.isActive())
+            continue;
+
         for (const auto& enemy_ptr : enemies[EnemyType::NORMAL]) {
             Entity& enemy = *enemy_ptr;
             if (bullet.collision(enemy)) {

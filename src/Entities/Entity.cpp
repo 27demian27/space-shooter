@@ -41,6 +41,7 @@ void Entity::update(float dt) {
 const float Entity::getCollisionDamage() const { return collision_damage; }
 
 Vector2 Entity::getSize() const { return size; }
+void Entity::setSize(Vector2 size) { this->size = size; }
 Vector2 Entity::getPosition() const { return position; }
 
 float Entity::getCurrentHealth() const { return current_health; }

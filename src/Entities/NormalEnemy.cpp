@@ -29,12 +29,14 @@ NormalEnemy::NormalEnemy(
 void NormalEnemy::update(float dt) {
     Vector2 direction = script->update(position, dt);
 
+
     position.x += direction.x * script->getCurrentMoveSpeed() * dt;
     position.y += direction.y * script->getCurrentMoveSpeed() * dt;
 
     last_taken_dmg_ago += dt;
 
-    Vector2 aim_direction = player_pos - position;
+    aim_direction = (player_pos - position).normalized();
+    //std::cout << "{" << aim_direction.x << ", " << aim_direction.y << "}";
     float angle_radians = atan2(aim_direction.y, aim_direction.x);
     rotation = angle_radians * 180.0f / M_PI + 90.0f;
 
@@ -56,12 +58,15 @@ bool NormalEnemy::shoot() {
     float bullet_health = 2.0f;
 
     playArea.addBullet(std::make_unique<Bullet>(
-        *this, 
-        position.x, 
-        position.y + size.y / 2.0f, 
+        bullet_speed,
+        bullet_damage,
+        rotation,
+        position.x + aim_direction.x * (size.x - 15.0f),
+        position.y + aim_direction.y * (size.y - 15.0f), 
         bullet_size,
         bullet_health,
-        false
+        false,
+        CIRCLE
     ));
 
 
