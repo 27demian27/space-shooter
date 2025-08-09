@@ -5,6 +5,7 @@
 #include <iostream>
 
 #include "Player.h"
+#include "../Bullet/SpecialBullet.h"
 
 #define START_POS {0, 0}
 #define SIZE {100, 100}
@@ -94,7 +95,8 @@ bool Player::shoot() {
                 bullet_damage = 10.0f;
                 bullet_size = {100.0f, 30.0f};
                 float bullet_health = 40.0f;
-                playArea.addBullet(std::make_unique<Bullet>(
+                Vector2 bullet_growth_rate = {100.0f, 0};
+                playArea.addBullet(std::make_unique<SpecialBullet>(
                     bullet_speed,
                     bullet_damage,
                     rotation,
@@ -103,7 +105,7 @@ bool Player::shoot() {
                     bullet_size,
                     bullet_health,
                     true,
-                    RECT
+                    bullet_growth_rate
                 ));
             }
             break;

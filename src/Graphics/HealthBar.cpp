@@ -8,7 +8,11 @@ HealthBar::HealthBar(sf::RenderWindow& window, Player& player, int x, int y)
 
     outerRect.setSize({width, height});
     outerRect.setPosition({static_cast<float>(x), static_cast<float>(y)});
-    outerRect.setFillColor(sf::Color::Red);
+    outerRect.setFillColor(sf::Color(77, 15, 15));
+
+    innerRect.setSize({width, height});
+    innerRect.setPosition({static_cast<float>(x), static_cast<float>(y)});
+    innerRect.setFillColor(sf::Color::Red);
 
     float padding_x = 5.0f;
     float padding_y = 5.0f;
@@ -22,6 +26,7 @@ void HealthBar::draw() {
     float max_health = player.getMaxHealth();
     float current_health = player.getCurrentHealth();
 
-    outerRect.setSize({current_health / max_health * width, height});
+    innerRect.setSize({current_health / max_health * width, height});
     window.draw(outerRect);
+    window.draw(innerRect);
 }

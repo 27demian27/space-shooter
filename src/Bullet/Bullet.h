@@ -20,7 +20,9 @@ public:
         HitboxShape hitboxShape
     );
 
-    void update(float dt);
+    virtual ~Bullet() = default;
+
+    virtual void update(float dt);
 
     Vector2 getPosition() const;
 
@@ -29,6 +31,8 @@ public:
     const float getCollisionDamage() const override;
 
     float getDamage() const;
+
+    float getRotation() const;
 
     Vector2 getPosition();
 
@@ -41,7 +45,7 @@ public:
 
     void takeDamage(float damage);
 
-private:
+protected:
     float speed;
 
     Vector2 position;

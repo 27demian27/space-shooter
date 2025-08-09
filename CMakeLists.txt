@@ -26,6 +26,8 @@ add_executable(
 
     src/Bullet/Bullet.h /
     src/Bullet/Bullet.cpp /
+    src/Bullet/SpecialBullet.h /
+    src/Bullet/SpecialBullet.cpp /
 
     src/Entities/Entity.h /
     src/Entities/Entity.cpp /
@@ -39,6 +41,7 @@ add_executable(
     src/Graphics/HealthBar.h /
     src/Graphics/HealthBar.cpp /
     src/Graphics/BoostBar.h /
+    src/Graphics/BoostBar.cpp /
 
     src/Utils/Vector2.h /
     src/Utils/Rect.h /

@@ -21,8 +21,8 @@ GameLoop::GameLoop(int width, int height)
     player_texture_no_thrust("assets/textures/space_ship_no_flames.png"),
     player_sprite(player_texture_thrust),
     health_bar(window, player, 20, height - 20.0f - 20),
+    boost_bar(window, player, width / 2.0f + 80, height - 20 - 20),
     font("assets/fonts/public_pixel.ttf"),
-    boost_bar(window, player, font),
     asteroid_cooldown(ASTEROID_COOLDOWN)
 {   
     sf::VideoMode desktop = sf::VideoMode::getDesktopMode();
@@ -46,9 +46,9 @@ GameLoop::GameLoop(int width, int height)
     loadBackgroundSpriteTextures();
     initBackgroundSprites();
 
-    //spawnEnemy(EnemyType::NORMAL, {-200, -400});
+    spawnEnemy(EnemyType::NORMAL, {-200, -400});
     spawnEnemy(EnemyType::NORMAL, {0, -400});
-    //spawnEnemy(EnemyType::NORMAL, {200, -400});
+    spawnEnemy(EnemyType::NORMAL, {200, -400});
 }
 
 void GameLoop::loadBackgroundSpriteTextures() {
@@ -341,6 +341,7 @@ void GameLoop::render() {
             bullet.getPosition().x + player_start_pos.x,
             bullet.getPosition().y + player_start_pos.y
         });
+        bullet_sprite->setRotation(sf::degrees(bullet.getRotation() * 180.0f / M_PI + 90.0f));
 
         window.draw(*bullet_sprite);
     }

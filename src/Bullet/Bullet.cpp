@@ -59,3 +59,7 @@ bool Bullet::isFromPlayer() const { return is_from_player; }
 void Bullet::takeDamage(float damage) { curr_health -= damage; }
 
 const float Bullet::getCollisionDamage() const { return collision_damage; }
+
+float Bullet::getRotation() const {
+    return atan2(direction.y, direction.x);
+}

@@ -22,7 +22,8 @@ private:
     Player& player;
 
     sf::RectangleShape outerRect;
-    std::vector<sf::RectangleShape> innerRects;
+    sf::RectangleShape innerRect;
+    //std::vector<sf::RectangleShape> innerRects;
 
 };
 

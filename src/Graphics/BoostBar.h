@@ -8,31 +8,21 @@ class BoostBar {
 
 public:
 
-    BoostBar(sf::RenderWindow& window, Player& player, const sf::Font& font)
-     : window(window),
-       player(player),
-       font(font)
-    {}
+    BoostBar(sf::RenderWindow& window, Player& player, int x, int y);
 
-    void draw() {
-        sf::Text text(font, 
-            std::to_string(player.getRemainingBoost()) + 
-            "/" + 
-            std::to_string(player.getBoostCapacity()),
-            20
-        );
-        text.setPosition({
-            static_cast<float>(window.getSize().x - 100), 
-            static_cast<float>(window.getSize().y - 40)
-        });
-        window.draw(text);
-    }
+    void draw();
 
 private:
+
+    float width = 300.0f;
+    float height = 20.0f;
+
     sf::RenderWindow& window;
-    const sf::Font& font;
 
     Player& player;
+
+    sf::RectangleShape outerRect;
+    sf::RectangleShape innerRect;
 };
 
 #endif //BOOSTBAR_H
