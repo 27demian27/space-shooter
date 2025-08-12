@@ -1,6 +1,6 @@
 #include "HealthBar.h"
 
-HealthBar::HealthBar(sf::RenderWindow& window, Player& player, int x, int y)
+HealthBar::HealthBar(sf::RenderWindow& window, Player const& player, int x, int y)
  : window(window), player(player) {
 
     width = 300.0f;

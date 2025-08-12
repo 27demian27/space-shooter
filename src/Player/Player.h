@@ -17,8 +17,8 @@ public:
     bool shoot() override;
 
     void setIsBoosting(bool is_boosting);
-    float getRemainingBoost();
-    float getBoostCapacity();
+    float getRemainingBoost() const;
+    float getBoostCapacity() const;
 
     Vector2 getVelocity();
     void setVelocity(Vector2 velocity);
@@ -51,8 +51,10 @@ public:
 
     void update(float dt);
 
-    float getMaxHealth();
-    float getCurrentHealth();
+    float getMaxHealth() const;
+    float getCurrentHealth() const;
+
+    size_t getScore() const;
 
 private:
 
@@ -60,6 +62,8 @@ private:
 
     float max_health;
     float current_health;
+
+    size_t score;
 
     float knockback_downtime;
 

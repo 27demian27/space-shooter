@@ -4,12 +4,12 @@
 #include <vector>
 
 #include <SFML/Graphics.hpp>
-#include "../Player/Player.h"
+#include "../../Player/Player.h"
 
 class HealthBar {
 
 public:
-    HealthBar(sf::RenderWindow& window, Player& player, int x, int y);
+    HealthBar(sf::RenderWindow& window, Player const& player, int x, int y);
 
     void draw();
 private:
@@ -19,7 +19,7 @@ private:
 
 
     sf::RenderWindow& window;
-    Player& player;
+    Player const& player;
 
     sf::RectangleShape outerRect;
     sf::RectangleShape innerRect;

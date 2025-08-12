@@ -7,8 +7,6 @@
 
 #include "Player/Player.h"
 #include "PlayArea/PlayArea.h"
-#include "Graphics/HealthBar.h"
-#include "Graphics/BoostBar.h"
 #include "EnemyTypes.h"
 
 class GameLoop {
@@ -19,11 +17,16 @@ public:
     void run();
     void menu();
 
+    bool exited() const;
 
 private:
+    bool has_exited;
 
-    float asteroid_cooldown;
+    float const asteroid_cooldown;
     float curr_asteroid_cooldown;
+
+    float const enemy_cooldown;
+    float curr_enemy_cooldown;
 
     sf::RenderWindow window;
 
@@ -40,10 +43,9 @@ private:
     std::vector<sf::Sprite> background_sprites;
     std::vector<sf::Texture> background_sprite_textures;
 
-    sf::Font const font;
+    std::map<Vector2, float> collision_explosions;
 
-    HealthBar health_bar;
-    BoostBar boost_bar;
+    sf::Font const font;
 
     PlayArea playArea;
 
@@ -54,11 +56,13 @@ private:
 
     void loadBackgroundSpriteTextures();
     void initBackgroundSprites();
-    void drawBackgroundSprites(float dt);
+    void drawBackgroundSprites(float dt, float move_speed);
 
-    Vector2 getRandomPosition();
+    Vector2 getRandomPosition(float width, float height);
 
     void spawnAsteroid(float dt);
+
+    void updateExplosions(float dt);
 
     void handleInput();
     void update(float dt);

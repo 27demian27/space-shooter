@@ -5,7 +5,8 @@
 Entity::Entity(
     Vector2 position, 
     Vector2 size, 
-    float max_health, 
+    float max_health,
+    size_t points_worth,
     float collision_damage, 
     std::unique_ptr<Script> script,
     HitboxShape hitboxShape
@@ -14,6 +15,7 @@ Entity::Entity(
    position(position), 
    size(size), 
    max_health(max_health),
+   points_worth(points_worth),
    last_taken_dmg_ago(FLT_MAX),
    script(std::move(script))
 {
@@ -59,3 +61,5 @@ void Entity::setScript(std::unique_ptr<Script> script) { this->script = std::mov
 bool Entity::isAlive() {
     return (script->isPlaying() && current_health > 0);
 }
+
+size_t Entity::getPointsWorth() const { return points_worth; }

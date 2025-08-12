@@ -32,7 +32,8 @@ Player::Player(PlayArea& playArea)
    boost_remaining(boost_capacity),
    boost_regen_rate(0.3f),
    last_taken_dmg_ago(FLT_MAX),
-   ship_type(ShipType::FROG)
+   ship_type(ShipType::FROG),
+   score(0)
 {
     rotation = 0.0f,
     attack_speed = 2.5f;
@@ -139,6 +140,8 @@ void Player::update(float dt) {
     updateHitbox(position, HITBOX_SIZE);
 
     last_taken_dmg_ago += dt;
+
+    score += playArea.getPointsToGive();
 
     position.x = position.x + velocity.x * dt;
     position.y = position.y + velocity.y * dt;
@@ -250,8 +253,8 @@ float Player::getBulletSpeed() { return bullet_speed; }
 float Player::getBulletDamage() { return bullet_damage; }
 
 void Player::setIsBoosting(bool is_boosting) { this->is_boosting = is_boosting; }
-float Player::getRemainingBoost() { return boost_remaining; }
-float Player::getBoostCapacity() { return boost_capacity; }
+float Player::getRemainingBoost() const { return boost_remaining; }
+float Player::getBoostCapacity() const { return boost_capacity; }
 
 Vector2 Player::getVelocity() { return velocity; }
 
@@ -300,5 +303,7 @@ float Player::lastTakenDamage() const { return last_taken_dmg_ago; }
 
 float Player::getKnockbackDowntime() { return knockback_downtime; }
 
-float Player::getMaxHealth() { return max_health; }
-float Player::getCurrentHealth() { return current_health; }
+float Player::getMaxHealth() const { return max_health; }
+float Player::getCurrentHealth() const { return current_health; }
+
+size_t Player::getScore() const { return score; }

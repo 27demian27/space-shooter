@@ -15,7 +15,8 @@ public:
     Entity(
         Vector2 position, 
         Vector2 size, 
-        float max_health, 
+        float max_health,
+        size_t points_worth,
         float collision_damage, 
         std::unique_ptr<Script> script,
         HitboxShape hitboxShape
@@ -42,12 +43,16 @@ public:
 
     void setScript(std::unique_ptr<Script> script);
 
+    size_t getPointsWorth() const;
+
     bool isAlive();
 
 protected:
     
     float max_health;
     float current_health;
+
+    size_t points_worth;
 
     float last_taken_dmg_ago;
 

@@ -12,7 +12,7 @@ NormalEnemy::NormalEnemy(
         HitboxShape hitboxShape,
         Vector2 const& player_pos,
         PlayArea& playArea)
-: Entity(position, size, max_health, collision_damage, std::move(script), hitboxShape),
+: Entity(position, size, max_health, 50, collision_damage, std::move(script), hitboxShape),
   player_pos(player_pos), playArea(playArea)
 {
 

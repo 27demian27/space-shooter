@@ -31,6 +31,10 @@ struct Vector2 {
         return {x / scalar, y / scalar};
     }
 
+    bool operator<(Vector2 const& other) const {
+        return x < other.x;;
+    }
+
     float length() const {
         return std::sqrt(x * x + y * y);
     }

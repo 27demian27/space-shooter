@@ -3,7 +3,7 @@
 A simple 2D shooter game that takes place in the cosmos.
 
 
-Fight your way through hordes of enemies and take on bosses.
+Fight your way through enemies and be wary of stray asteroids.
   
 <br />
 

@@ -8,10 +8,16 @@
 #include "Entities/NormalEnemy.h"
 #include "Utils/Hitbox.h"
 #include "Scripts/AsteroidScript.h"
+#include "Scripts/FollowPlayerScript.h"
+#include "Graphics/UI.h"
+#include "Graphics/Menu.h"
 
 #define MAX_ENTITY_COUNT 10
-#define DMG_ANIMATION_DURATION 0.05f
+#define MAX_ENEMY_COUNT 1
 #define ASTEROID_COOLDOWN 5.0f
+#define NORMAL_ENEMY_COOLDOWN 10.0f
+#define DMG_ANIMATION_DURATION 0.05f
+#define EXPLOSION_ANIMATION_DURATION 0.05f
 
 GameLoop::GameLoop(int width, int height)
  :  window(sf::VideoMode({static_cast<uint>(width), static_cast<uint>(height)}), "Space Shooter"),
@@ -20,10 +26,9 @@ GameLoop::GameLoop(int width, int height)
     player_texture_thrust("assets/textures/space_ship.png"),
     player_texture_no_thrust("assets/textures/space_ship_no_flames.png"),
     player_sprite(player_texture_thrust),
-    health_bar(window, player, 20, height - 20.0f - 20),
-    boost_bar(window, player, width / 2.0f + 80, height - 20 - 20),
     font("assets/fonts/public_pixel.ttf"),
-    asteroid_cooldown(ASTEROID_COOLDOWN)
+    asteroid_cooldown(ASTEROID_COOLDOWN),
+    enemy_cooldown(NORMAL_ENEMY_COOLDOWN)
 {   
     sf::VideoMode desktop = sf::VideoMode::getDesktopMode();
     window.setPosition(sf::Vector2i(0, 0));
@@ -42,13 +47,10 @@ GameLoop::GameLoop(int width, int height)
 
     asteroid_textures.push_back(sf::Texture("assets/textures/asteroid2.png"));
     curr_asteroid_cooldown = 0.0f;
+    curr_enemy_cooldown = 0.0f;
 
     loadBackgroundSpriteTextures();
     initBackgroundSprites();
-
-    spawnEnemy(EnemyType::NORMAL, {-200, -400});
-    spawnEnemy(EnemyType::NORMAL, {0, -400});
-    spawnEnemy(EnemyType::NORMAL, {200, -400});
 }
 
 void GameLoop::loadBackgroundSpriteTextures() {
@@ -59,7 +61,7 @@ void GameLoop::loadBackgroundSpriteTextures() {
 
 void GameLoop::spawnEnemy(EnemyType type, Vector2 position) {
     if (type == EnemyType::NORMAL) {
-        auto script = std::make_unique<Script>(position);
+        auto script = std::make_unique<FollowPlayerScript>(position, player.getPosition());
         playArea.addEnemy(EnemyType::NORMAL,
             std::make_unique<NormalEnemy>(
                 position,
@@ -75,7 +77,7 @@ void GameLoop::spawnEnemy(EnemyType type, Vector2 position) {
     }
 }
 
-Vector2 GameLoop::getRandomPosition() {
+Vector2 GameLoop::getRandomPosition(float width, float height) {
     static std::random_device rd;
     static std::mt19937 gen(rd());
     std::uniform_real_distribution<float> distX(0.0f, width);
@@ -88,7 +90,7 @@ void GameLoop::initBackgroundSprites() {
     int max_background_sprites = 80;
 
     for (int i = 0; i < max_background_sprites; i++) {
-        Vector2 pos = getRandomPosition();
+        Vector2 pos = getRandomPosition(width, height);
         sf::Sprite sprite(background_sprite_textures[i % background_sprite_textures.size()]);
         sprite.setPosition({pos.x, pos.y});
         background_sprites.push_back(sprite);
@@ -96,8 +98,7 @@ void GameLoop::initBackgroundSprites() {
 
 }
 
-void GameLoop::drawBackgroundSprites(float dt) {
-    float move_speed = 500.0f;
+void GameLoop::drawBackgroundSprites(float dt, float move_speed) {
     int max_background_sprites = 200;
 
     for (auto it = background_sprites.begin(); it != background_sprites.end(); ) {
@@ -116,12 +117,28 @@ void GameLoop::drawBackgroundSprites(float dt) {
     }
 
     for (int i = background_sprites.size()-1; i < max_background_sprites; i++) {
-        Vector2 pos = getRandomPosition();
+        Vector2 pos = getRandomPosition(width, height);
         sf::Sprite sprite(background_sprite_textures[i % background_sprite_textures.size()]);
         sprite.setPosition({pos.x, pos.y - height});
         background_sprites.push_back(sprite);
     }
 
+}
+
+void GameLoop::updateExplosions(float dt) {
+    for (auto& collision_explosion : collision_explosions) {
+        collision_explosion.second -= dt;
+    }
+    for (auto it = collision_explosions.begin(); it != collision_explosions.end(); ) {
+        if (it->second <= 0) {
+            it = collision_explosions.erase(it);
+        } else {
+            ++it;
+        }
+    }
+    for (Vector2 const& collision_coord : playArea.getCollisionCoords()) {
+        collision_explosions.insert({collision_coord, EXPLOSION_ANIMATION_DURATION});
+    }
 }
 
 void GameLoop::spawnAsteroid(float dt) {
@@ -143,12 +160,13 @@ void GameLoop::spawnAsteroid(float dt) {
         float size = static_cast<float>(MIN_SIZE + rand() % (MAX_SIZE - MIN_SIZE));
 
         float max_health = size / MAX_SIZE * MAX_MAX_HEALTH;
-
+        size_t points = 10;
         auto asteroid_script = std::make_unique<AsteroidScript>(entity_start_pos, entity_end_pos);
         playArea.addEntity(std::make_unique<Entity>(
             entity_start_pos,
             Vector2({size, size}),
             max_health,
+            points, 
             10,
             std::move(asteroid_script),
             HitboxShape::CIRCLE
@@ -160,54 +178,53 @@ void GameLoop::spawnAsteroid(float dt) {
 
 
 void GameLoop::run() {
-    window.setFramerateLimit(120);
+    //window.setFramerateLimit(120);
 
     sf::Texture const background_texture("assets/textures/space_background.jpg");
     sf::Sprite background_sprite(background_texture);
  
     enemy_textures.push_back(sf::Texture("assets/textures/enemy1.png"));
 
-    sf::SoundBuffer buffer;
-    if (!buffer.loadFromFile("assets/sfx/shoot_sound.wav"))
+    sf::SoundBuffer shoot_buffer;
+    if (!shoot_buffer.loadFromFile("assets/sfx/shoot_sound.wav")) {
+        std::cerr << "ERROR: FAILED TO LOAD SHOOT_SOUND\n";
         return;
+    }
+    sf::Sound shoot_sound(shoot_buffer);
 
-    sf::Sound shoot_sound(buffer);
-    sf::Text menu_title_text(font, "Space Shooter", 50);
-    menu_title_text.setFillColor(sf::Color(50, 0, 100));
-    menu_title_text.setOutlineColor(sf::Color(255, 255, 255));
-    menu_title_text.setOutlineThickness(0.8f);
-    menu_title_text.setOrigin(menu_title_text.getLocalBounds().getCenter());
+    sf::SoundBuffer explosion_buffer;
+    if (!explosion_buffer.loadFromFile("assets/sfx/explosion.wav")) {
+        std::cerr << "ERROR: FAILED TO LOAD EXPLOSION_SOUND\n";
+        return;
+    }
+    sf::Sound explosion_sound(explosion_buffer);
+    explosion_sound.setVolume(15.0f);
 
-    sf::Text game_over_text(font, "Game Over", 50);
-    game_over_text.setFillColor(sf::Color(10, 210, 10));
-    game_over_text.setOutlineColor(sf::Color(255, 255, 255));
-    game_over_text.setOutlineThickness(0.8f);
-    game_over_text.setOrigin(game_over_text.getLocalBounds().getCenter());
+    Menu menu(window);
 
-    sf::Vector2u windowSize = window.getSize();
-    sf::Vector2f windowCenterPos(windowSize.x / 2.0f, windowSize.y / 2.0f);
-    menu_title_text.setPosition({windowCenterPos.x, windowCenterPos.y - 300.0f});
-    game_over_text.setPosition({windowCenterPos.x, windowCenterPos.y - 300.0f});
+    UI ui(window, player, width, height);
 
-    sf::RectangleShape special_attack_ready_box({40, 20});
-    special_attack_ready_box.setOrigin(special_attack_ready_box.getLocalBounds().getCenter());
-    special_attack_ready_box.setPosition({width / 2.0f, height - 40.0f + 10.0f});
-    special_attack_ready_box.setFillColor(sf::Color::Green);
 
     bool in_menu = true;
-
     sf::Clock clock;
     while (window.isOpen())
     {
         float dt = clock.restart().asSeconds();
         while (const std::optional event = window.pollEvent())
         {
-            if (event->is<sf::Event::Closed>())
+            if (event->is<sf::Event::Closed>()) {
                 window.close();
+                has_exited = true;
+                return;
+            }
             else if (const auto* keyPressed = event->getIf<sf::Event::KeyPressed>())
             {
-                if (keyPressed->scancode == sf::Keyboard::Scancode::Escape)
+                if (keyPressed->scancode == sf::Keyboard::Scancode::Escape) {
                     in_menu = !in_menu;
+                    if (player.getCurrentHealth() <= 0) {
+                        return;
+                    }
+                }
             }
             else if (const auto* mouseMoved = event->getIf<sf::Event::MouseMoved>())
             {
@@ -219,17 +236,17 @@ void GameLoop::run() {
                     }));
             }
         }
- 
-        window.clear();
- 
- 
-        if (in_menu) {
-            window.draw(background_sprite);
-            window.draw(menu_title_text);
 
+        window.clear();
+
+
+        if (in_menu) {
+            drawBackgroundSprites(dt, 100.0f);
+            menu.draw(Menu::MenuState::MAIN);
         } else if (player.getCurrentHealth() <= 0) {
-            window.draw(background_sprite);
-            window.draw(game_over_text);
+            drawBackgroundSprites(dt, 50.0f);
+            menu.setFinalScore(player.getScore());
+            menu.draw(Menu::MenuState::GAMEOVER);
         } else {
 
             if (player.getKnockbackDowntime() <= 0) {
@@ -248,7 +265,7 @@ void GameLoop::run() {
             if (sf::Mouse::isButtonPressed(sf::Mouse::Button::Left)) {
                 player.setShootingMode(NORMAL_ATTACK);
                 if(player.shoot())
-                    shoot_sound.play();
+                    shoot_sound.play(); 
             } 
 
             if (sf::Keyboard::isKeyPressed(sf::Keyboard::Scancode::Space)) {
@@ -261,24 +278,31 @@ void GameLoop::run() {
                 spawnAsteroid(dt);
             }
 
+            curr_enemy_cooldown -= dt;
+            if (curr_enemy_cooldown <= 0) {
+                if (playArea.getEnemies(NORMAL).size() < MAX_ENEMY_COUNT) {
+                    spawnEnemy(NORMAL, getRandomPosition(width, 200.0f) - Vector2({width / 2.0f, height / 2.0f}));
+                    curr_enemy_cooldown = enemy_cooldown;
+                }
+            }
+
             player.update(dt);
             playArea.update(dt);
 
-            drawBackgroundSprites(dt);
+            updateExplosions(dt);
+
+            if (playArea.wasCollision())
+                explosion_sound.play();
+            if (player.lastTakenDamage() <= DMG_ANIMATION_DURATION)
+                explosion_sound.play();
+
+            drawBackgroundSprites(dt, 500.0f);
 
             render();
 
             //drawDebug();
 
-            health_bar.draw();
-            boost_bar.draw();
-
-            if (player.getRemainingSpecialAttackCooldown() > 0) {
-                special_attack_ready_box.setFillColor(sf::Color(128, 128, 128));
-            } else {
-                special_attack_ready_box.setFillColor(sf::Color::Green);
-            }
-            window.draw(special_attack_ready_box);
+            ui.draw();
 
         }
  
@@ -364,7 +388,15 @@ void GameLoop::render() {
         window.draw(enemy_sprite);
     }
 
-    window.draw(player_sprite); 
+    window.draw(player_sprite);
+
+    for (auto const& collision_explosion : collision_explosions) {
+        sf::CircleShape circle(collision_explosion.second / EXPLOSION_ANIMATION_DURATION * 20.0f);
+        circle.setOrigin(circle.getLocalBounds().getCenter());
+        circle.setFillColor(sf::Color::Yellow);
+        circle.setPosition({width / 2.0f + collision_explosion.first.x, height / 2.0f + collision_explosion.first.y});
+        window.draw(circle);
+    }
 }
 
 void GameLoop::drawDebug() {
@@ -462,3 +494,5 @@ void GameLoop::drawDebug() {
     window.draw(y_pos_text);
     window.draw(player_hitbox);
 }
+
+bool GameLoop::exited() const { return has_exited; }

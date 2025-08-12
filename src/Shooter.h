@@ -18,7 +18,7 @@ public:
     virtual float getBulletDamage() = 0;
 
     void setShootingMode(ShootingMode mode) { this->shootingMode = mode; }
-    float getRemainingSpecialAttackCooldown() { return remaining_special_attack_cooldown; }
+    float getRemainingSpecialAttackCooldown() const { return remaining_special_attack_cooldown; }
 
 protected:
     float attack_speed;

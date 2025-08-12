@@ -8,14 +8,21 @@ PlayArea::PlayArea(int width, int height) {
     float halfHeight = height / 2.0f;
 
     bounds = Rect(
-            Vector2({-halfWidth, -halfHeight}),
-            Vector2({-halfWidth, halfHeight}),
-            Vector2({halfWidth, -halfHeight}),
-            Vector2({-halfWidth, -halfHeight})
-        );
+        Vector2({-halfWidth, -halfHeight}),
+        Vector2({-halfWidth, halfHeight}),
+        Vector2({halfWidth, -halfHeight}),
+        Vector2({-halfWidth, -halfHeight})
+    );
+
+    was_collision = false;
+    points_to_give = 0;
 }
 
 void PlayArea::update(float dt) {
+    was_collision = false;
+    points_to_give = 0;
+    collision_coords.clear();
+
     for (auto& bullet_ptr : bullets) {
         Bullet& bullet = *bullet_ptr;
 
@@ -32,6 +39,8 @@ void PlayArea::update(float dt) {
         for (const auto& entity_ptr : entities) {
             Entity& entity = *entity_ptr;
             if (bullet.collision(entity)) {
+                was_collision = true;
+                collision_coords.push_back(bullet.getPosition());
                 entity.takeDamage(bullet.getDamage());
                 bullet.deactivate();
                 break;
@@ -41,9 +50,11 @@ void PlayArea::update(float dt) {
         if (!bullet.isActive())
             continue;
 
-        for (const auto& enemy_ptr : enemies[EnemyType::NORMAL]) {
+        for (const auto& enemy_ptr : enemies[NORMAL]) {
             Entity& enemy = *enemy_ptr;
             if (bullet.collision(enemy)) {
+                was_collision = true;
+                collision_coords.push_back(bullet.getPosition());
                 enemy.takeDamage(bullet.getDamage());
                 bullet.deactivate();
                 break;
@@ -60,6 +71,7 @@ void PlayArea::update(float dt) {
             if (!bullet_B.isActive()) continue;
 
             if (bullet_A.collision(bullet_B)) {
+                //was_collision = true;
                 bullet_A.takeDamage(bullet_B.getDamage());
                 bullet_B.takeDamage(bullet_A.getDamage());
             }
@@ -79,23 +91,29 @@ void PlayArea::update(float dt) {
                 Entity& entity = *entity_ptr;
                 entity.update(dt);
                 if (!entity.isAlive()) {
+                    if (entity.getCurrentHealth() <= 0)
+                        points_to_give += entity.getPointsWorth();
+                    
                     return true;
                 }
                 return false;
             }),
         entities.end()
     );
-    enemies[EnemyType::NORMAL].erase(
-        std::remove_if(enemies[EnemyType::NORMAL].begin(), enemies[EnemyType::NORMAL].end(),
+    enemies[NORMAL].erase(
+        std::remove_if(enemies[NORMAL].begin(), enemies[NORMAL].end(),
             [this, dt](std::unique_ptr<Entity> const& enemy_ptr) {
                 Entity& enemy = *enemy_ptr;
                 enemy.update(dt);
                 if (!enemy.isAlive()) {
+                    if (enemy.getCurrentHealth() <= 0)
+                        points_to_give += enemy.getPointsWorth();
+
                     return true;
                 }
                 return false;
             }),
-        enemies[EnemyType::NORMAL].end()
+        enemies[NORMAL].end()
     );
 }
 
@@ -133,7 +151,22 @@ void PlayArea::addEntity(std::unique_ptr<Entity> entity) { entities.push_back(st
 
 std::vector<std::unique_ptr<Entity>> const& PlayArea::getEntities() const { return entities; }
 
-std::vector<std::unique_ptr<Entity>> const& PlayArea::getEnemies(EnemyType type) const { return enemies.at(type); };
+std::vector<std::unique_ptr<Entity>> const& PlayArea::getEnemies(EnemyType type) const { 
+    static const std::vector<std::unique_ptr<Entity>> empty;
+
+    auto it = enemies.find(type);
+    if (it != enemies.end()) {
+        return it->second;
+    }
+    return empty;
+};
+
 void PlayArea::addEnemy(EnemyType type, std::unique_ptr<Entity> enemy) { 
     enemies[type].push_back(std::move(enemy));
 }
+
+bool PlayArea::wasCollision() const { return was_collision; }
+
+std::vector<Vector2> const PlayArea::getCollisionCoords() const { return collision_coords; }
+
+size_t PlayArea::getPointsToGive() const { return points_to_give; }

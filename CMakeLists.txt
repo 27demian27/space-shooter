@@ -38,10 +38,14 @@ add_executable(
     src/Collidable.h /
     src/EnemyTypes.h /
 
-    src/Graphics/HealthBar.h /
-    src/Graphics/HealthBar.cpp /
-    src/Graphics/BoostBar.h /
-    src/Graphics/BoostBar.cpp /
+    src/Graphics/UI.h /
+    src/Graphics/UI.cpp /
+    src/Graphics/Menu.h /
+    src/Graphics/Menu.cpp /
+    src/Graphics/Elements/HealthBar.h /
+    src/Graphics/Elements/HealthBar.cpp /
+    src/Graphics/Elements/BoostBar.h /
+    src/Graphics/Elements/BoostBar.cpp /
 
     src/Utils/Vector2.h /
     src/Utils/Rect.h /
@@ -55,6 +59,8 @@ add_executable(
     src/Scripts/Script.cpp /
     src/Scripts/AsteroidScript.h /
     src/Scripts/AsteroidScript.cpp
+    src/Scripts/FollowPlayerScript.h /
+    src/Scripts/FollowPlayerScript.cpp /
     
     )
 target_compile_features(main PRIVATE cxx_std_17)
